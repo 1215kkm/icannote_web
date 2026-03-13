@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+
+class AppColors {
+  AppColors._();
+
+  static const Color primary = Color(0xFF4A90D9);
+  static const Color secondary = Color(0xFF50C878);
+  static const Color accent = Color(0xFFFF6B6B);
+
+  static const Color canvasBackground = Color(0xFFF0F0F0);
+  static const Color pageBackground = Colors.white;
+
+  static const Color toolbarBackground = Color(0xFF3C3C3C);
+  static const Color toolbarIconDefault = Color(0xFFCCCCCC);
+  static const Color toolbarIconActive = Color(0xFFFFFFFF);
+  static const Color toolbarDivider = Color(0xFF555555);
+
+  static const Color menuBarBackground = Color(0xFF4A4A4A);
+  static const Color menuBarText = Color(0xFFDDDDDD);
+  static const Color menuBarTextActive = Colors.white;
+
+  static const Color panelBackground = Color(0xFFF5F5F5);
+  static const Color panelBorder = Color(0xFFDDDDDD);
+
+  static const List<Color> defaultPalette = [
+    Colors.black,
+    Colors.white,
+    Color(0xFFFF0000),
+    Color(0xFF0000FF),
+    Color(0xFF00FF00),
+    Color(0xFFFFFF00),
+    Color(0xFFFF00FF),
+    Color(0xFF00FFFF),
+    Color(0xFFFF8000),
+    Color(0xFF8000FF),
+    Color(0xFF008000),
+    Color(0xFF800000),
+  ];
+}
