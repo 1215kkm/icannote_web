@@ -5,6 +5,8 @@ import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/collaboration/join_room_screen.dart';
+import '../../features/payment/subscription_screen.dart';
+import '../../features/payment/payment_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -34,6 +36,17 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final inviteCode = state.pathParameters['inviteCode'] ?? '';
         return JoinRoomScreen(inviteCode: inviteCode);
+      },
+    ),
+    GoRoute(
+      path: '/subscription',
+      builder: (context, state) => const SubscriptionScreen(),
+    ),
+    GoRoute(
+      path: '/payment/:plan',
+      builder: (context, state) {
+        final plan = state.pathParameters['plan'] ?? 'pro';
+        return PaymentScreen(planName: plan);
       },
     ),
   ],

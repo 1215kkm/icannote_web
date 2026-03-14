@@ -30,5 +30,8 @@ func RegisterRoutes(r *gin.Engine) {
 		// Payment endpoints
 		protected.POST("/payments/billing-key", handler.CreateBillingKey)
 		protected.POST("/payments/subscribe", handler.Subscribe)
+		protected.GET("/payments/subscription", handler.GetSubscription)
+		protected.POST("/payments/cancel", handler.CancelSubscription)
+		protected.GET("/payments/client-key", handler.GetClientKey)
 	}
 }

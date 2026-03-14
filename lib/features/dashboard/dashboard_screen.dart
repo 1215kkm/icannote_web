@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
+import '../../providers/subscription_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -25,6 +26,9 @@ class DashboardScreen extends ConsumerWidget {
         foregroundColor: Colors.white,
         actions: [
           if (authState.isAuthenticated) ...[
+            // Subscription badge
+            _SubscriptionBadge(),
+            const SizedBox(width: AppDimensions.spacingMD),
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.spacingMD),
@@ -122,6 +126,50 @@ class DashboardScreen extends ConsumerWidget {
       }
       context.go('/editor');
     }
+  }
+}
+
+class _SubscriptionBadge extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subState = ref.watch(subscriptionProvider);
+    final planName = subState.currentPlan.name.toUpperCase();
+    final isActive = subState.isActive;
+
+    return InkWell(
+      onTap: () => context.go('/subscription'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.spacingLG,
+          vertical: AppDimensions.spacingSM,
+        ),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.secondary.withValues(alpha: 0.2)
+              : Colors.grey.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSM),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? Icons.star : Icons.star_border,
+              size: 14,
+              color: isActive ? AppColors.secondary : Colors.grey.shade400,
+            ),
+            const SizedBox(width: AppDimensions.spacingSM),
+            Text(
+              planName,
+              style: TextStyle(
+                fontSize: AppDimensions.fontSizeSM,
+                fontWeight: FontWeight.bold,
+                color: isActive ? AppColors.secondary : Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

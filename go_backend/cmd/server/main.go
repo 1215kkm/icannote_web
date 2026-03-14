@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "github.com/icannote/go_backend/api/v1"
 	"github.com/icannote/go_backend/internal/config"
+	"github.com/icannote/go_backend/internal/handler"
 )
 
 func main() {
@@ -15,6 +16,9 @@ func main() {
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// Initialize services
+	handler.InitPaymentHandlers(cfg.TossSecretKey)
 
 	r := gin.Default()
 
