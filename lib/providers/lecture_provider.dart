@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/lecture.dart';
 import '../models/page_data.dart';
-import '../models/stroke.dart';
+import '../models/canvas_element.dart';
 import '../core/constants/app_constants.dart';
 
 class LectureState {
@@ -98,11 +98,11 @@ class LectureNotifier extends StateNotifier<LectureState> {
     );
   }
 
-  void updateCurrentPageStrokes(List<Stroke> strokes) {
+  void updateCurrentPageElements(List<CanvasElement> elements) {
     if (state.lecture == null || state.currentPage == null) return;
     final pages = [...state.lecture!.pages];
     pages[state.currentPageIndex] =
-        state.currentPage!.copyWith(strokes: strokes);
+        state.currentPage!.copyWith(elements: elements);
     state = state.copyWith(
       lecture: () => state.lecture!.copyWith(pages: pages),
     );

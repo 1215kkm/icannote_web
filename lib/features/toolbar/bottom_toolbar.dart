@@ -65,12 +65,12 @@ class BottomToolbar extends ConsumerWidget {
           _BottomAction(
             icon: Icons.arrow_upward,
             tooltip: 'Bring Forward',
-            onTap: () {},
+            onTap: () => ref.read(canvasProvider.notifier).bringForward(),
           ),
           _BottomAction(
             icon: Icons.arrow_downward,
             tooltip: 'Send Backward',
-            onTap: () {},
+            onTap: () => ref.read(canvasProvider.notifier).sendBackward(),
           ),
           const VerticalDivider(
               width: 1, color: AppColors.toolbarDivider),
@@ -89,17 +89,17 @@ class BottomToolbar extends ConsumerWidget {
           _BottomAction(
             icon: Icons.copy,
             tooltip: 'Copy',
-            onTap: () {},
+            onTap: () => ref.read(canvasProvider.notifier).copySelected(),
           ),
           _BottomAction(
             icon: Icons.paste,
             tooltip: 'Paste',
-            onTap: () {},
+            onTap: () => ref.read(canvasProvider.notifier).paste(),
           ),
           _BottomAction(
             icon: Icons.select_all,
             tooltip: 'Select All',
-            onTap: () {},
+            onTap: () => ref.read(canvasProvider.notifier).selectAll(),
           ),
           _BottomAction(
             icon: Icons.clear_all,

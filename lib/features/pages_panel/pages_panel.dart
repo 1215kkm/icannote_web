@@ -50,10 +50,10 @@ class PagesPanel extends ConsumerWidget {
                           ref
                               .read(lectureProvider.notifier)
                               .setCurrentPage(index);
-                          // Load the strokes for this page
+                          // Load the elements for this page
                           ref
                               .read(canvasProvider.notifier)
-                              .loadStrokes(page.visibleStrokes);
+                              .loadElements(page.visibleElements);
                         },
                       );
                     },
