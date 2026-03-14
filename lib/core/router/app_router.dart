@@ -7,6 +7,7 @@ import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/collaboration/join_room_screen.dart';
 import '../../features/payment/subscription_screen.dart';
 import '../../features/payment/payment_screen.dart';
+import '../../features/settings/settings_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -48,6 +49,10 @@ final appRouter = GoRouter(
         final plan = state.pathParameters['plan'] ?? 'pro';
         return PaymentScreen(planName: plan);
       },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

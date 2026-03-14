@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -51,25 +51,21 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   @override
   Widget build(BuildContext context) {
     final syncState = ref.watch(syncProvider);
+    final settings = ref.watch(settingsProvider);
+
+    final shortcutActions = <String, VoidCallback>{
+      'undo': () => ref.read(canvasProvider.notifier).undo(),
+      'redo': () => ref.read(canvasProvider.notifier).redo(),
+      'redo_alt': () => ref.read(canvasProvider.notifier).redo(),
+      'save': () => _saveCurrentLecture(),
+      'copy': () => ref.read(canvasProvider.notifier).copySelected(),
+      'paste': () => ref.read(canvasProvider.notifier).paste(),
+      'delete': () => ref.read(canvasProvider.notifier).deleteSelected(),
+      'select_all': () => ref.read(canvasProvider.notifier).selectAll(),
+    };
 
     return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.keyZ, control: true): () =>
-            ref.read(canvasProvider.notifier).undo(),
-        const SingleActivator(LogicalKeyboardKey.keyY, control: true): () =>
-            ref.read(canvasProvider.notifier).redo(),
-        const SingleActivator(LogicalKeyboardKey.keyZ,
-            control: true, shift: true): () =>
-            ref.read(canvasProvider.notifier).redo(),
-        const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
-            _saveCurrentLecture(),
-        const SingleActivator(LogicalKeyboardKey.keyC, control: true): () =>
-            ref.read(canvasProvider.notifier).copySelected(),
-        const SingleActivator(LogicalKeyboardKey.keyV, control: true): () =>
-            ref.read(canvasProvider.notifier).paste(),
-        const SingleActivator(LogicalKeyboardKey.delete): () =>
-            ref.read(canvasProvider.notifier).deleteSelected(),
-      },
+      bindings: settings.buildShortcutMap(shortcutActions),
       child: Focus(
         autofocus: true,
         child: Scaffold(

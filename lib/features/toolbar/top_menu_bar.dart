@@ -50,7 +50,7 @@ class TopMenuBar extends ConsumerWidget {
           _MenuBarItem(
             label: 'Settings',
             isHighlighted: true,
-            onTap: () {},
+            onTap: () => context.go('/settings'),
           ),
           _LoginMenuBarItem(),
           _MenuBarItem(
