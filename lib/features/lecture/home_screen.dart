@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../models/canvas_element.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../services/file_service.dart';
@@ -40,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
               iconColor: AppColors.textbookCardColor,
               title: 'Open Textbook',
               subtitle: 'Open documents in\nvarious formats',
-              onTap: () => _openTextbook(context),
+              onTap: () => _openTextbook(context, ref),
             ),
           ],
         ),
@@ -63,18 +66,82 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _openTextbook(BuildContext context) async {
+  Future<void> _openTextbook(BuildContext context, WidgetRef ref) async {
     final fileService = FileService();
     final files = await fileService.pickDocumentFiles();
-    if (files != null && files.isNotEmpty && context.mounted) {
+    if (files == null || files.isEmpty || !context.mounted) return;
+
+    // Separate image files from document files
+    final imageExtensions = {'jpg', 'jpeg', 'png'};
+    final imageFiles = <PlatformFile>[];
+    final docFiles = <PlatformFile>[];
+
+    for (final file in files) {
+      final ext = file.extension?.toLowerCase() ?? '';
+      if (imageExtensions.contains(ext)) {
+        imageFiles.add(file);
+      } else {
+        docFiles.add(file);
+      }
+    }
+
+    // Show message for unsupported document files
+    if (docFiles.isNotEmpty && imageFiles.isEmpty && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Selected ${files.length} file(s). '
-            'Document conversion requires backend server (coming soon).',
+            '${docFiles.map((f) => f.extension?.toUpperCase()).toSet().join(", ")} '
+            'format conversion is coming soon.',
           ),
         ),
       );
+      return;
+    }
+
+    // Handle image files - load them onto the canvas
+    if (imageFiles.isNotEmpty && context.mounted) {
+      // Create a new lecture first
+      ref.read(lectureProvider.notifier).createNewLecture();
+
+      final elements = <CanvasElement>[];
+      double yOffset = 50.0;
+
+      for (final file in imageFiles) {
+        if (file.bytes == null) continue;
+
+        // Convert to base64 data URL
+        final ext = file.extension?.toLowerCase() ?? 'png';
+        final mimeType = ext == 'jpg' || ext == 'jpeg' ? 'image/jpeg' : 'image/png';
+        final base64Data = base64Encode(file.bytes!);
+        final dataUrl = 'data:$mimeType;base64,$base64Data';
+
+        // Place image on canvas (default size, user can resize later)
+        final imageElement = ImageCanvasElement(
+          imageUrl: dataUrl,
+          rect: Rect.fromLTWH(50, yOffset, 800, 600),
+        );
+        elements.add(imageElement);
+        yOffset += 650; // Stack images vertically with gap
+      }
+
+      // Load elements into canvas
+      ref.read(canvasProvider.notifier).loadElements(elements);
+
+      // Show info about doc files if any were also selected
+      if (docFiles.isNotEmpty && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Loaded ${imageFiles.length} image(s). '
+              '${docFiles.length} document file(s) skipped (coming soon).',
+            ),
+          ),
+        );
+      }
+
+      if (context.mounted) {
+        context.go('/editor');
+      }
     }
   }
 

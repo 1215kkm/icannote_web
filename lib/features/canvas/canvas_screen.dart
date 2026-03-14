@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -307,6 +309,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                         ),
                       ),
                     ),
+                    // Image overlays (rendered as widgets for async loading)
+                    ..._buildImageOverlays(canvasState),
                     // Sticker overlays (for animation)
                     ..._buildStickerOverlays(canvasState),
                     // Sticker drag preview
@@ -362,6 +366,54 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
         ),
       ),
     );
+  }
+
+  List<Widget> _buildImageOverlays(CanvasState canvasState) {
+    final images = canvasState.elements
+        .whereType<ImageCanvasElement>()
+        .where((e) => !e.isDeleted)
+        .toList();
+
+    return images.map((img) {
+      Widget imageWidget;
+      if (img.imageUrl.startsWith('data:')) {
+        // Base64 data URL
+        try {
+          final dataUri = Uri.parse(img.imageUrl);
+          final base64Str = img.imageUrl.split(',').last;
+          final bytes = base64Decode(base64Str);
+          imageWidget = Image.memory(
+            Uint8List.fromList(bytes),
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey),
+            ),
+          );
+        } catch (_) {
+          imageWidget = const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey),
+          );
+        }
+      } else {
+        imageWidget = Image.network(
+          img.imageUrl,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey),
+          ),
+        );
+      }
+
+      return Positioned(
+        left: img.rect.left,
+        top: img.rect.top,
+        width: img.rect.width,
+        height: img.rect.height,
+        child: IgnorePointer(
+          child: imageWidget,
+        ),
+      );
+    }).toList();
   }
 
   List<Widget> _buildStickerOverlays(CanvasState canvasState) {

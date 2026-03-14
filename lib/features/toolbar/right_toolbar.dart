@@ -23,8 +23,10 @@ class RightToolbar extends ConsumerWidget {
     return Container(
       width: width,
       color: AppColors.toolbarBackground,
+      alignment: Alignment.topCenter,
       child: SingleChildScrollView(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(height: AppDimensions.spacingSM),
             _ToolGroup(

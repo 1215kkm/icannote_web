@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../models/canvas_element.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -88,7 +91,7 @@ class TopMenuBar extends ConsumerWidget {
         ),
         PopupMenuItem(
           child: Text(l10n.addTextbook),
-          onTap: () => _openTextbookFile(buttonContext),
+          onTap: () => _openTextbookFile(buttonContext, ref),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
@@ -222,19 +225,76 @@ class TopMenuBar extends ConsumerWidget {
     });
   }
 
-  void _openTextbookFile(BuildContext context) {
+  void _openTextbookFile(BuildContext context, WidgetRef ref) {
     Future.microtask(() async {
       final fileService = FileService();
       final files = await fileService.pickDocumentFiles();
-      if (files != null && files.isNotEmpty && context.mounted) {
+      if (files == null || files.isEmpty || !context.mounted) return;
+
+      final imageExtensions = {'jpg', 'jpeg', 'png'};
+      final imageFiles = <PlatformFile>[];
+      final docFiles = <PlatformFile>[];
+
+      for (final file in files) {
+        final ext = file.extension?.toLowerCase() ?? '';
+        if (imageExtensions.contains(ext)) {
+          imageFiles.add(file);
+        } else {
+          docFiles.add(file);
+        }
+      }
+
+      if (docFiles.isNotEmpty && imageFiles.isEmpty && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Selected ${files.length} file(s). '
-              'Document conversion requires backend server (coming soon).',
+              '${docFiles.map((f) => f.extension?.toUpperCase()).toSet().join(", ")} '
+              'format conversion is coming soon.',
             ),
           ),
         );
+        return;
+      }
+
+      if (imageFiles.isNotEmpty && context.mounted) {
+        final currentElements = ref.read(canvasProvider).elements;
+        final newElements = <CanvasElement>[...currentElements];
+        double yOffset = 50.0;
+
+        // Find existing bottom position
+        for (final el in currentElements) {
+          final bottom = el.boundingBox.bottom;
+          if (bottom + 50 > yOffset) yOffset = bottom + 50;
+        }
+
+        for (final file in imageFiles) {
+          if (file.bytes == null) continue;
+          final ext = file.extension?.toLowerCase() ?? 'png';
+          final mimeType = ext == 'jpg' || ext == 'jpeg' ? 'image/jpeg' : 'image/png';
+          final base64Data = base64Encode(file.bytes!);
+          final dataUrl = 'data:$mimeType;base64,$base64Data';
+
+          final imageElement = ImageCanvasElement(
+            imageUrl: dataUrl,
+            rect: Rect.fromLTWH(50, yOffset, 800, 600),
+          );
+          newElements.add(imageElement);
+          yOffset += 650;
+        }
+
+        ref.read(canvasProvider.notifier).loadElements(newElements);
+        ref.read(lectureProvider.notifier).updateCurrentPageElements(newElements);
+
+        if (docFiles.isNotEmpty && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Loaded ${imageFiles.length} image(s). '
+                '${docFiles.length} document file(s) skipped (coming soon).',
+              ),
+            ),
+          );
+        }
       }
     });
   }
