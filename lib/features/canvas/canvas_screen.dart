@@ -8,6 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_dimensions.dart';
 import 'canvas_painter.dart';
+import 'graph_overlay.dart';
 import '../collaboration/cursor_overlay.dart';
 
 class CanvasScreen extends ConsumerStatefulWidget {
@@ -171,6 +172,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       ),
                     ),
                   ),
+                  // Graph overlay
+                  const GraphOverlay(),
                   // Remote cursor overlay
                   const CursorOverlay(),
                   // Text input overlay

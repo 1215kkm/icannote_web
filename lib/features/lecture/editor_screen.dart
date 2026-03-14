@@ -14,6 +14,8 @@ import '../toolbar/bottom_toolbar.dart';
 import '../pages_panel/pages_panel.dart';
 import '../canvas/canvas_screen.dart';
 import '../collaboration/participant_panel.dart';
+import '../recording/recording_overlay.dart';
+import '../library/library_panel.dart';
 import '../../widgets/resizable_panel.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -119,6 +121,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                             AppDimensions.spacingMD,
                         child: const ParticipantPanel(),
                       ),
+                    // Library panel overlay
+                    const LibraryPanel(),
+                    // Recording overlay
+                    const RecordingOverlay(),
                   ],
                 ),
               ),

@@ -4,6 +4,9 @@ import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../library/library_panel.dart';
+import '../canvas/graph_overlay.dart';
+import '../recording/recording_overlay.dart';
 
 class BottomToolbar extends ConsumerWidget {
   const BottomToolbar({super.key});
@@ -123,8 +126,14 @@ class BottomToolbar extends ConsumerWidget {
           _BottomAction(
             icon: Icons.library_books,
             tooltip: 'Library',
-            onTap: () {},
+            onTap: () => ref.read(libraryProvider.notifier).toggle(),
           ),
+          _BottomAction(
+            icon: Icons.show_chart,
+            tooltip: 'Graph',
+            onTap: () => ref.read(graphProvider.notifier).toggle(),
+          ),
+          const RecordButton(),
           _BottomAction(
             icon: Icons.screenshot,
             tooltip: 'Screen Capture',
