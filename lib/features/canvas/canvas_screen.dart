@@ -5,6 +5,7 @@ import '../../providers/lecture_provider.dart';
 import '../../models/stroke.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_dimensions.dart';
 import 'canvas_painter.dart';
 
 class CanvasScreen extends ConsumerStatefulWidget {
@@ -119,9 +120,10 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
           transformationController: _transformController,
           panEnabled: isPanMode,
           scaleEnabled: true,
-          minScale: 0.25,
-          maxScale: 5.0,
-          boundaryMargin: const EdgeInsets.all(200),
+          minScale: AppDimensions.canvasMinScale,
+          maxScale: AppDimensions.canvasMaxScale,
+          boundaryMargin:
+              const EdgeInsets.all(AppDimensions.canvasBoundaryMargin),
           child: SizedBox(
             width: pageWidth,
             height: pageHeight,
@@ -139,8 +141,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          blurRadius: AppDimensions.shadowBlurMD,
+                          offset: const Offset(
+                              0, AppDimensions.shadowOffsetY),
                         ),
                       ],
                     ),
@@ -203,16 +206,22 @@ class _TextInputOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 100, maxWidth: 300),
+      constraints: const BoxConstraints(
+        minWidth: AppDimensions.textInputMinWidth,
+        maxWidth: AppDimensions.textInputMaxWidth,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFF2196F3), width: 1.5),
-        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: AppColors.textInputBorder,
+          width: AppDimensions.borderWidthMedium,
+        ),
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSM),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: AppDimensions.shadowBlurSM,
+            offset: const Offset(0, AppDimensions.shadowOffsetY),
           ),
         ],
       ),
@@ -223,10 +232,12 @@ class _TextInputOverlay extends StatelessWidget {
             child: TextField(
               controller: controller,
               focusNode: focusNode,
-              style: TextStyle(color: color, fontSize: 16),
+              style: TextStyle(
+                  color: color, fontSize: AppDimensions.fontSizeLG),
               maxLines: null,
               decoration: const InputDecoration(
-                contentPadding: EdgeInsets.all(8),
+                contentPadding:
+                    EdgeInsets.all(AppDimensions.textInputPadding),
                 border: InputBorder.none,
                 hintText: 'Type text...',
                 hintStyle: TextStyle(color: Colors.grey),
@@ -239,11 +250,13 @@ class _TextInputOverlay extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: onCancel,
-                child: const Text('Cancel', style: TextStyle(fontSize: 11)),
+                child: const Text('Cancel',
+                    style: TextStyle(fontSize: AppDimensions.fontSizeSM)),
               ),
               TextButton(
                 onPressed: onSubmit,
-                child: const Text('OK', style: TextStyle(fontSize: 11)),
+                child: const Text('OK',
+                    style: TextStyle(fontSize: AppDimensions.fontSizeSM)),
               ),
             ],
           ),

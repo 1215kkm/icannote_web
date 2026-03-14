@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../services/file_service.dart';
@@ -12,7 +13,7 @@ class TopMenuBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      height: 32,
+      height: AppDimensions.topMenuBarHeight,
       color: AppColors.menuBarBackground,
       child: Row(
         children: [
@@ -67,7 +68,8 @@ class TopMenuBar extends ConsumerWidget {
     final offset = button.localToGlobal(Offset.zero);
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(offset.dx, 32, 0, 0),
+      position: RelativeRect.fromLTRB(
+          offset.dx, AppDimensions.topMenuBarHeight, 0, 0),
       items: <PopupMenuEntry>[
         PopupMenuItem(
           child: const Text('New Lecture'),
@@ -93,7 +95,8 @@ class TopMenuBar extends ConsumerWidget {
   void _showSaveMenu(BuildContext context, WidgetRef ref) {
     showMenu(
       context: context,
-      position: const RelativeRect.fromLTRB(80, 32, 0, 0),
+      position: RelativeRect.fromLTRB(
+          80, AppDimensions.topMenuBarHeight, 0, 0),
       items: <PopupMenuEntry>[
         PopupMenuItem(
           child: const Text('Save'),
@@ -129,7 +132,8 @@ class TopMenuBar extends ConsumerWidget {
   void _showPageMenu(BuildContext context, WidgetRef ref) {
     showMenu(
       context: context,
-      position: const RelativeRect.fromLTRB(160, 32, 0, 0),
+      position: RelativeRect.fromLTRB(
+          160, AppDimensions.topMenuBarHeight, 0, 0),
       items: [
         PopupMenuItem(
           child: const Text('Add Page'),
@@ -259,14 +263,17 @@ class _MenuBarItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.menuItemPaddingH,
+          vertical: AppDimensions.menuItemPaddingV,
+        ),
         child: Text(
           label,
           style: TextStyle(
             color: isHighlighted
                 ? AppColors.menuBarTextActive
                 : AppColors.menuBarText,
-            fontSize: 12,
+            fontSize: AppDimensions.fontSizeMD,
             fontWeight:
                 isHighlighted ? FontWeight.bold : FontWeight.normal,
           ),
@@ -328,9 +335,9 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
           Row(
             children: [
               const Text('Page Width'),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppDimensions.spacingLG),
               SizedBox(
-                width: 80,
+                width: AppDimensions.textFieldWidth,
                 child: TextField(
                   controller: _widthController,
                   keyboardType: TextInputType.number,
@@ -340,11 +347,11 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
                   ),
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: AppDimensions.spacingXXL),
               const Text('Page Height'),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppDimensions.spacingLG),
               SizedBox(
-                width: 80,
+                width: AppDimensions.textFieldWidth,
                 child: TextField(
                   controller: _heightController,
                   keyboardType: TextInputType.number,
@@ -356,9 +363,9 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDimensions.spacingXL),
           const Text('Orientation'),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimensions.spacingMD),
           Row(
             children: [
               ChoiceChip(
@@ -368,7 +375,7 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
                   if (!_isLandscape) _toggleOrientation();
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDimensions.spacingMD),
               ChoiceChip(
                 label: const Text('Portrait'),
                 selected: !_isLandscape,
@@ -378,12 +385,12 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppDimensions.spacingLG),
           Text(
             'Page size defaults to A4. When printing, the scale is adjusted to fit.',
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.red.shade700,
+              fontSize: AppDimensions.fontSizeMD,
+              color: AppColors.warningText,
             ),
           ),
         ],

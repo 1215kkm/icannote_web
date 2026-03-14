@@ -22,6 +22,16 @@ class AppColors {
   static const Color panelBackground = Color(0xFFF5F5F5);
   static const Color panelBorder = Color(0xFFDDDDDD);
 
+  // Semantic colors
+  static const Color textbookCardColor = Color(0xFF5BC0DE);
+  static const Color textInputBorder = Color(0xFF2196F3);
+  static const Color warningText = Color(0xFFC62828);
+
+  // Theme surface colors
+  static const Color themeSurface = Color(0xFF2C2C2C);
+  static const Color themeScaffold = Color(0xFF1E1E1E);
+  static const Color themeAppBar = Color(0xFF333333);
+
   static const List<Color> defaultPalette = [
     Colors.black,
     Colors.white,

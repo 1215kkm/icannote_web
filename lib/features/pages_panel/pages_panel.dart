@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import 'page_thumbnail.dart';
 
 class PagesPanel extends ConsumerWidget {
@@ -25,11 +26,14 @@ class PagesPanel extends ConsumerWidget {
                 ? const Center(
                     child: Text(
                       'No pages',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: AppDimensions.fontSizeMD,
+                      ),
                     ),
                   )
                 : ReorderableListView.builder(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(AppDimensions.spacingSM),
                     itemCount: pages.length,
                     onReorder: (oldIndex, newIndex) {
                       if (newIndex > oldIndex) newIndex--;

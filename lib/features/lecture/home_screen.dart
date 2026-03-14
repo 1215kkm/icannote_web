@@ -6,6 +6,7 @@ import '../../providers/canvas_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_dimensions.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -25,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
               subtitle: 'Open a blank page\nand start a lecture',
               onTap: () => _showNewLectureDialog(context, ref),
             ),
-            const SizedBox(width: 32),
+            const SizedBox(width: AppDimensions.homeCardGap),
             _HomeCard(
               icon: Icons.folder_open,
               iconColor: AppColors.secondary,
@@ -33,10 +34,10 @@ class HomeScreen extends ConsumerWidget {
               subtitle: 'Open an ICanNote file\n(*.icn) to start',
               onTap: () => _openIcnFile(context, ref),
             ),
-            const SizedBox(width: 32),
+            const SizedBox(width: AppDimensions.homeCardGap),
             _HomeCard(
               icon: Icons.description,
-              iconColor: const Color(0xFF5BC0DE),
+              iconColor: AppColors.textbookCardColor,
               title: 'Open Textbook',
               subtitle: 'Open documents in\nvarious formats',
               onTap: () => _openTextbook(context),
@@ -104,43 +105,45 @@ class _HomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMD),
       child: Container(
-        width: 180,
-        padding: const EdgeInsets.all(24),
+        width: AppDimensions.homeCardWidth,
+        padding: const EdgeInsets.all(AppDimensions.homeCardPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: AppDimensions.homeIconContainerSize,
+              height: AppDimensions.homeIconContainerSize,
               decoration: BoxDecoration(
                 color: iconColor,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.borderRadiusLG),
                 boxShadow: [
                   BoxShadow(
                     color: iconColor.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    blurRadius: AppDimensions.shadowBlurLG,
+                    offset: const Offset(0, AppDimensions.shadowOffsetYLG),
                   ),
                 ],
               ),
-              child: Icon(icon, size: 48, color: Colors.white),
+              child: Icon(icon, size: AppDimensions.iconSizeLG,
+                  color: Colors.white),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingXL),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: AppDimensions.fontSizeLG,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingMD),
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppDimensions.fontSizeMD,
                 color: Colors.grey.shade600,
               ),
             ),
@@ -187,7 +190,7 @@ class _NewLectureDialogSimpleState extends State<_NewLectureDialogSimple> {
             children: [
               const Text('Page Width  '),
               SizedBox(
-                width: 80,
+                width: AppDimensions.textFieldWidth,
                 child: TextField(
                   controller: _widthController,
                   keyboardType: TextInputType.number,
@@ -197,10 +200,10 @@ class _NewLectureDialogSimpleState extends State<_NewLectureDialogSimple> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppDimensions.spacingXL),
               const Text('Page Height  '),
               SizedBox(
-                width: 80,
+                width: AppDimensions.textFieldWidth,
                 child: TextField(
                   controller: _heightController,
                   keyboardType: TextInputType.number,
@@ -212,7 +215,7 @@ class _NewLectureDialogSimpleState extends State<_NewLectureDialogSimple> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDimensions.spacingXL),
           Row(
             children: [
               const Text('Orientation  '),
@@ -230,7 +233,7 @@ class _NewLectureDialogSimpleState extends State<_NewLectureDialogSimple> {
                   }
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDimensions.spacingMD),
               ChoiceChip(
                 label: const Text('Portrait'),
                 selected: !_isLandscape,
@@ -247,10 +250,13 @@ class _NewLectureDialogSimpleState extends State<_NewLectureDialogSimple> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppDimensions.spacingLG),
           Text(
             'Page size defaults to A4. When printing, the scale adjusts to fit paper size.',
-            style: TextStyle(fontSize: 11, color: Colors.red.shade700),
+            style: TextStyle(
+              fontSize: AppDimensions.fontSizeSM,
+              color: AppColors.warningText,
+            ),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../models/stroke.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../canvas/widgets/color_picker.dart';
 import '../canvas/widgets/stroke_width_slider.dart';
 
@@ -14,11 +15,11 @@ class RightToolbar extends ConsumerWidget {
     final canvasState = ref.watch(canvasProvider);
 
     return Container(
-      width: 52,
+      width: AppDimensions.rightToolbarWidth,
       color: AppColors.toolbarBackground,
       child: Column(
         children: [
-          const SizedBox(height: 4),
+          const SizedBox(height: AppDimensions.spacingSM),
           _ToolGroup(
             children: [
               _ToolButton(
@@ -194,22 +195,25 @@ class RightToolbar extends ConsumerWidget {
             onChanged: (w) =>
                 ref.read(canvasProvider.notifier).setStrokeWidth(w),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppDimensions.spacingSM),
           // Color palette
           CompactColorPicker(
             selectedColor: canvasState.currentColor,
             onColorSelected: (c) =>
                 ref.read(canvasProvider.notifier).setColor(c),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimensions.spacingMD),
         ],
       ),
     );
   }
 
   Widget _divider() => Container(
-        height: 1,
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        height: AppDimensions.dividerHeight,
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.dividerMarginH,
+          vertical: AppDimensions.dividerMarginV,
+        ),
         color: AppColors.toolbarDivider,
       );
 }
@@ -252,21 +256,24 @@ class _ToolButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          width: 24,
-          height: 24,
-          margin: const EdgeInsets.all(1),
+          width: AppDimensions.toolButtonSize,
+          height: AppDimensions.toolButtonSize,
+          margin: const EdgeInsets.all(AppDimensions.toolButtonMargin),
           decoration: BoxDecoration(
             color: isActive
                 ? AppColors.primary.withValues(alpha: 0.3)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSM),
             border: isActive
-                ? Border.all(color: AppColors.primary, width: 1.5)
+                ? Border.all(
+                    color: AppColors.primary,
+                    width: AppDimensions.borderWidthMedium,
+                  )
                 : null,
           ),
           child: Icon(
             icon,
-            size: 16,
+            size: AppDimensions.iconSizeSM,
             color: isActive
                 ? AppColors.toolbarIconActive
                 : isHighlighted

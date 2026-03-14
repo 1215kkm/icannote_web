@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 
 class BottomToolbar extends ConsumerWidget {
   const BottomToolbar({super.key});
@@ -14,48 +15,56 @@ class BottomToolbar extends ConsumerWidget {
     final currentPage = lectureState.currentPageIndex + 1;
 
     return Container(
-      height: 36,
+      height: AppDimensions.bottomToolbarHeight,
       color: AppColors.toolbarBackground,
       child: Row(
         children: [
           // Page info
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMD),
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  icon: const Icon(Icons.add_circle_outline,
+                      size: AppDimensions.iconSizeMD),
                   onPressed: () =>
                       ref.read(lectureProvider.notifier).addPage(),
                   tooltip: 'Add Page',
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                  constraints: const BoxConstraints(
+                    minWidth: AppDimensions.bottomButtonMinSize,
+                    minHeight: AppDimensions.bottomButtonMinSize,
+                  ),
                 ),
                 Text(
                   '$currentPage / $pageCount Page',
                   style: const TextStyle(
                     color: AppColors.toolbarIconDefault,
-                    fontSize: 11,
+                    fontSize: AppDimensions.fontSizeSM,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18),
+                  icon: const Icon(Icons.delete_outline,
+                      size: AppDimensions.iconSizeMD),
                   onPressed: () => ref
                       .read(lectureProvider.notifier)
                       .deletePage(lectureState.currentPageIndex),
                   tooltip: 'Delete Page',
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                  constraints: const BoxConstraints(
+                    minWidth: AppDimensions.bottomButtonMinSize,
+                    minHeight: AppDimensions.bottomButtonMinSize,
+                  ),
                 ),
               ],
             ),
           ),
           const VerticalDivider(
-              width: 1, color: AppColors.toolbarDivider),
+              width: AppDimensions.dividerHeight,
+              color: AppColors.toolbarDivider),
           // Toolbar actions
           _BottomAction(
             icon: Icons.flip,
@@ -73,7 +82,8 @@ class BottomToolbar extends ConsumerWidget {
             onTap: () => ref.read(canvasProvider.notifier).sendBackward(),
           ),
           const VerticalDivider(
-              width: 1, color: AppColors.toolbarDivider),
+              width: AppDimensions.dividerHeight,
+              color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.undo,
             tooltip: 'Undo',
@@ -85,7 +95,8 @@ class BottomToolbar extends ConsumerWidget {
             onTap: () => ref.read(canvasProvider.notifier).redo(),
           ),
           const VerticalDivider(
-              width: 1, color: AppColors.toolbarDivider),
+              width: AppDimensions.dividerHeight,
+              color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.copy,
             tooltip: 'Copy',
@@ -107,7 +118,8 @@ class BottomToolbar extends ConsumerWidget {
             onTap: () => ref.read(canvasProvider.notifier).clearAll(),
           ),
           const VerticalDivider(
-              width: 1, color: AppColors.toolbarDivider),
+              width: AppDimensions.dividerHeight,
+              color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.library_books,
             tooltip: 'Library',
@@ -119,7 +131,8 @@ class BottomToolbar extends ConsumerWidget {
             onTap: () {},
           ),
           const VerticalDivider(
-              width: 1, color: AppColors.toolbarDivider),
+              width: AppDimensions.dividerHeight,
+              color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.abc,
             tooltip: 'Auto Alphabet',
@@ -149,7 +162,8 @@ class BottomToolbar extends ConsumerWidget {
             },
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMD),
             child: Consumer(
               builder: (context, ref, _) {
                 final zoom = ref.watch(
@@ -158,7 +172,7 @@ class BottomToolbar extends ConsumerWidget {
                   '${(zoom * 100).toInt()}%',
                   style: const TextStyle(
                     color: AppColors.toolbarIconDefault,
-                    fontSize: 11,
+                    fontSize: AppDimensions.fontSizeSM,
                   ),
                 );
               },
@@ -188,12 +202,13 @@ class _BottomAction extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          width: 32,
-          height: 32,
-          margin: const EdgeInsets.symmetric(horizontal: 1),
+          width: AppDimensions.actionButtonSize,
+          height: AppDimensions.actionButtonSize,
+          margin: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.actionButtonMarginH),
           child: Icon(
             icon,
-            size: 18,
+            size: AppDimensions.iconSizeMD,
             color: AppColors.toolbarIconDefault,
           ),
         ),

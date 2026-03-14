@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
+import '../core/constants/app_dimensions.dart';
 
 class ResizablePanel extends StatefulWidget {
   final Widget child;
@@ -60,15 +61,16 @@ class _ResizablePanelState extends State<ResizablePanel> {
           });
         },
         child: Container(
-          width: 4,
+          width: AppDimensions.resizeHandleWidth,
           color: Colors.grey.shade400,
           child: Center(
             child: Container(
-              width: 2,
-              height: 30,
+              width: AppDimensions.spacingXS,
+              height: AppDimensions.resizeIndicatorHeight,
               decoration: BoxDecoration(
                 color: Colors.grey.shade500,
-                borderRadius: BorderRadius.circular(1),
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.borderRadiusXS),
               ),
             ),
           ),

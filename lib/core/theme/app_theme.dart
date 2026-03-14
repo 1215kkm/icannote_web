@@ -9,11 +9,11 @@ class AppTheme {
         colorScheme: ColorScheme.dark(
           primary: AppColors.primary,
           secondary: AppColors.secondary,
-          surface: const Color(0xFF2C2C2C),
+          surface: AppColors.themeSurface,
         ),
-        scaffoldBackgroundColor: const Color(0xFF1E1E1E),
+        scaffoldBackgroundColor: AppColors.themeScaffold,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF333333),
+          backgroundColor: AppColors.themeAppBar,
           elevation: 0,
         ),
         useMaterial3: true,
