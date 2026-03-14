@@ -3,25 +3,32 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/icannote/go_backend/internal/handler"
+	"github.com/icannote/go_backend/internal/middleware"
 )
 
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
+
+	// Public endpoints
+	api.POST("/payments/webhook", handler.PaymentWebhook)
+
+	// Protected endpoints — require valid Firebase auth token
+	protected := api.Group("")
+	protected.Use(middleware.AuthMiddleware())
 	{
 		// File endpoints
-		api.POST("/files/upload", handler.UploadFile)
-		api.POST("/files/convert", handler.ConvertFile)
+		protected.POST("/files/upload", handler.UploadFile)
+		protected.POST("/files/convert", handler.ConvertFile)
 
 		// Lecture endpoints
-		api.GET("/lectures", handler.ListLectures)
-		api.POST("/lectures", handler.CreateLecture)
-		api.GET("/lectures/:id", handler.GetLecture)
-		api.PUT("/lectures/:id", handler.UpdateLecture)
-		api.DELETE("/lectures/:id", handler.DeleteLecture)
+		protected.GET("/lectures", handler.ListLectures)
+		protected.POST("/lectures", handler.CreateLecture)
+		protected.GET("/lectures/:id", handler.GetLecture)
+		protected.PUT("/lectures/:id", handler.UpdateLecture)
+		protected.DELETE("/lectures/:id", handler.DeleteLecture)
 
 		// Payment endpoints
-		api.POST("/payments/billing-key", handler.CreateBillingKey)
-		api.POST("/payments/subscribe", handler.Subscribe)
-		api.POST("/payments/webhook", handler.PaymentWebhook)
+		protected.POST("/payments/billing-key", handler.CreateBillingKey)
+		protected.POST("/payments/subscribe", handler.Subscribe)
 	}
 }

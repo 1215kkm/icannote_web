@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
 
@@ -47,11 +49,7 @@ class TopMenuBar extends ConsumerWidget {
             isHighlighted: true,
             onTap: () {},
           ),
-          _MenuBarItem(
-            label: 'Login',
-            isHighlighted: true,
-            onTap: () {},
-          ),
+          _LoginMenuBarItem(),
           _MenuBarItem(
             label: 'Help',
             isHighlighted: true,
@@ -279,6 +277,64 @@ class _MenuBarItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LoginMenuBarItem extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+
+    if (authState.isAuthenticated) {
+      return InkWell(
+        onTap: () => _showUserMenu(context, ref, authState),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.menuItemPaddingH,
+            vertical: AppDimensions.menuItemPaddingV,
+          ),
+          child: Text(
+            authState.user?.displayName ?? authState.user?.email ?? 'User',
+            style: const TextStyle(
+              color: AppColors.menuBarTextActive,
+              fontSize: AppDimensions.fontSizeMD,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _MenuBarItem(
+      label: 'Login',
+      isHighlighted: true,
+      onTap: () => context.go('/login'),
+    );
+  }
+
+  void _showUserMenu(
+      BuildContext context, WidgetRef ref, AuthState authState) {
+    showMenu<String>(
+      context: context,
+      position: const RelativeRect.fromLTRB(500, AppDimensions.topMenuBarHeight, 0, 0),
+      items: <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text(authState.user?.email ?? ''),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          onTap: () => context.go('/dashboard'),
+          child: const Text('Dashboard'),
+        ),
+        PopupMenuItem<String>(
+          onTap: () {
+            ref.read(authProvider.notifier).signOut();
+          },
+          child: const Text('Sign Out'),
+        ),
+      ],
     );
   }
 }
