@@ -24,13 +24,12 @@ class CanvasPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Layer 2: Content - completed elements
+    // Layer 2: Content - completed elements (skip stickers, rendered as widgets)
     if (cachedImage != null) {
       canvas.drawImage(cachedImage!, Offset.zero, Paint());
     } else {
-      // Fallback: draw all elements directly
       for (final element in elements) {
-        if (!element.isDeleted) {
+        if (!element.isDeleted && element is! StickerElement) {
           element.paint(canvas, size);
         }
       }
@@ -43,7 +42,8 @@ class CanvasPainter extends CustomPainter {
 
     // Layer 4: UI overlay - selection handles
     if (selectedElementId != null) {
-      final selected = elements.where((e) => e.id == selectedElementId).toList();
+      final selected =
+          elements.where((e) => e.id == selectedElementId).toList();
       if (selected.isNotEmpty) {
         _paintSelectionHandles(canvas, selected.first);
       }
@@ -55,25 +55,21 @@ class CanvasPainter extends CustomPainter {
     const handleSize = 8.0;
     const handleHalf = handleSize / 2;
 
-    // Selection border (dashed-style with solid blue)
     final borderPaint = Paint()
       ..color = const Color(0xFF2196F3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawRect(bbox, borderPaint);
 
-    // Handle fill
     final handleFillPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
 
-    // Handle border
     final handleBorderPaint = Paint()
       ..color = const Color(0xFF2196F3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    // Draw 8 resize handles (corners + edge midpoints)
     final handles = [
       bbox.topLeft,
       bbox.topCenter,
@@ -95,7 +91,6 @@ class CanvasPainter extends CustomPainter {
       canvas.drawRect(rect, handleBorderPaint);
     }
 
-    // Rotation handle (circle above top center)
     final rotationCenter = Offset(bbox.center.dx, bbox.top - 20);
     canvas.drawLine(bbox.topCenter, rotationCenter, borderPaint);
     canvas.drawCircle(rotationCenter, handleHalf, handleFillPaint);

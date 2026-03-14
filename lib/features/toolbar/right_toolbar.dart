@@ -8,202 +8,265 @@ import '../canvas/widgets/color_picker.dart';
 import '../canvas/widgets/stroke_width_slider.dart';
 
 class RightToolbar extends ConsumerWidget {
-  const RightToolbar({super.key});
+  final double width;
+  const RightToolbar({super.key, this.width = AppDimensions.rightToolbarWidth});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canvasState = ref.watch(canvasProvider);
+    // Scale tool sizes based on panel width
+    final scale = (width / AppDimensions.rightToolbarWidth).clamp(1.0, 3.0);
+    final toolSize = (AppDimensions.toolButtonSize * scale).clamp(24.0, 64.0);
+    final iconSize = (AppDimensions.iconSizeSM * scale).clamp(16.0, 40.0);
+    final toolMargin = (AppDimensions.toolButtonMargin * scale).clamp(1.0, 4.0);
 
     return Container(
-      width: AppDimensions.rightToolbarWidth,
+      width: width,
       color: AppColors.toolbarBackground,
-      child: Column(
-        children: [
-          const SizedBox(height: AppDimensions.spacingSM),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.radio_button_unchecked,
-                tool: DrawingTool.laserPointer,
-                tooltip: 'Laser Pointer',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.laserPointer),
-                isHighlighted: true,
-              ),
-              _ToolButton(
-                icon: Icons.gesture,
-                tool: DrawingTool.pen,
-                tooltip: 'Free Draw',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
-              ),
-            ],
-          ),
-          _divider(),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.show_chart,
-                tool: DrawingTool.line,
-                tooltip: 'Line',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.line),
-              ),
-              _ToolButton(
-                icon: Icons.timeline,
-                tool: DrawingTool.curve,
-                tooltip: 'Curve',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.curve),
-              ),
-            ],
-          ),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.crop_square,
-                tool: DrawingTool.rectangle,
-                tooltip: 'Rectangle',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rectangle),
-              ),
-              _ToolButton(
-                icon: Icons.circle_outlined,
-                tool: DrawingTool.circle,
-                tooltip: 'Circle',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.circle),
-              ),
-            ],
-          ),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.hexagon_outlined,
-                tool: DrawingTool.polygon,
-                tooltip: 'Polygon',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.polygon),
-              ),
-              _ToolButton(
-                icon: Icons.change_history,
-                tool: DrawingTool.triangle,
-                tooltip: 'Triangle',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.triangle),
-              ),
-            ],
-          ),
-          _divider(),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.note,
-                tool: DrawingTool.sticker,
-                tooltip: 'Sticker',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.sticker),
-              ),
-              _ToolButton(
-                icon: Icons.auto_fix_high,
-                tool: DrawingTool.autoShape,
-                tooltip: 'Auto Shape',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.autoShape),
-              ),
-            ],
-          ),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.select_all,
-                tool: DrawingTool.selection,
-                tooltip: 'Select',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.selection),
-              ),
-              _ToolButton(
-                icon: Icons.rotate_right,
-                tool: DrawingTool.rotation,
-                tooltip: 'Rotate',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rotation),
-              ),
-            ],
-          ),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.auto_fix_normal,
-                tool: DrawingTool.eraser,
-                tooltip: 'Detail Eraser',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.eraser),
-              ),
-              _ToolButton(
-                icon: Icons.pan_tool,
-                tool: DrawingTool.pan,
-                tooltip: 'Pan',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pan),
-              ),
-            ],
-          ),
-          _divider(),
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.title,
-                tool: DrawingTool.text,
-                tooltip: 'Text',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.text),
-              ),
-              _ToolButton(
-                icon: Icons.text_fields,
-                tool: DrawingTool.none,
-                tooltip: 'Text Options',
-                currentTool: DrawingTool.none, // Never highlighted
-                onTap: () {},
-              ),
-            ],
-          ),
-          _divider(),
-          // Pen & Highlighter
-          _ToolGroup(
-            children: [
-              _ToolButton(
-                icon: Icons.edit,
-                tool: DrawingTool.pen,
-                tooltip: 'Pen',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
-              ),
-              _ToolButton(
-                icon: Icons.highlight,
-                tool: DrawingTool.highlighter,
-                tooltip: 'Highlighter',
-                currentTool: canvasState.currentTool,
-                onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.highlighter),
-              ),
-            ],
-          ),
-          const Spacer(),
-          // Stroke width display
-          StrokeWidthDisplay(
-            width: canvasState.strokeWidth,
-            onChanged: (w) =>
-                ref.read(canvasProvider.notifier).setStrokeWidth(w),
-          ),
-          const SizedBox(height: AppDimensions.spacingSM),
-          // Color palette
-          CompactColorPicker(
-            selectedColor: canvasState.currentColor,
-            onColorSelected: (c) =>
-                ref.read(canvasProvider.notifier).setColor(c),
-          ),
-          const SizedBox(height: AppDimensions.spacingMD),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: AppDimensions.spacingSM),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.radio_button_unchecked,
+                  tool: DrawingTool.laserPointer,
+                  tooltip: 'Laser Pointer',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.laserPointer),
+                  isHighlighted: true,
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.gesture,
+                  tool: DrawingTool.pen,
+                  tooltip: 'Free Draw',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _divider(),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.show_chart,
+                  tool: DrawingTool.line,
+                  tooltip: 'Line',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.line),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.timeline,
+                  tool: DrawingTool.curve,
+                  tooltip: 'Curve',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.curve),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.crop_square,
+                  tool: DrawingTool.rectangle,
+                  tooltip: 'Rectangle',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rectangle),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.circle_outlined,
+                  tool: DrawingTool.circle,
+                  tooltip: 'Circle',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.circle),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.hexagon_outlined,
+                  tool: DrawingTool.polygon,
+                  tooltip: 'Polygon',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.polygon),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.change_history,
+                  tool: DrawingTool.triangle,
+                  tooltip: 'Triangle',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.triangle),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _divider(),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.note,
+                  tool: DrawingTool.sticker,
+                  tooltip: 'Sticker',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.sticker),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.auto_fix_high,
+                  tool: DrawingTool.autoShape,
+                  tooltip: 'Auto Shape',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.autoShape),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.select_all,
+                  tool: DrawingTool.selection,
+                  tooltip: 'Select',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.selection),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.rotate_right,
+                  tool: DrawingTool.rotation,
+                  tooltip: 'Rotate',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rotation),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.auto_fix_normal,
+                  tool: DrawingTool.eraser,
+                  tooltip: 'Detail Eraser',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.eraser),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.pan_tool,
+                  tool: DrawingTool.pan,
+                  tooltip: 'Pan',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pan),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _divider(),
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.title,
+                  tool: DrawingTool.text,
+                  tooltip: 'Text',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.text),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.text_fields,
+                  tool: DrawingTool.none,
+                  tooltip: 'Text Options',
+                  currentTool: DrawingTool.none,
+                  onTap: () {},
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            _divider(),
+            // Pen & Highlighter
+            _ToolGroup(
+              children: [
+                _ToolButton(
+                  icon: Icons.edit,
+                  tool: DrawingTool.pen,
+                  tooltip: 'Pen',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+                _ToolButton(
+                  icon: Icons.highlight,
+                  tool: DrawingTool.highlighter,
+                  tooltip: 'Highlighter',
+                  currentTool: canvasState.currentTool,
+                  onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.highlighter),
+                  size: toolSize,
+                  iconSize: iconSize,
+                  margin: toolMargin,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.spacingSM),
+            // Color palette (right under pen/highlighter)
+            CompactColorPicker(
+              selectedColor: canvasState.currentColor,
+              onColorSelected: (c) =>
+                  ref.read(canvasProvider.notifier).setColor(c),
+              width: width,
+            ),
+            const SizedBox(height: AppDimensions.spacingSM),
+            // Stroke width display
+            StrokeWidthDisplay(
+              width: canvasState.strokeWidth,
+              onChanged: (w) =>
+                  ref.read(canvasProvider.notifier).setStrokeWidth(w),
+            ),
+            const SizedBox(height: AppDimensions.spacingMD),
+          ],
+        ),
       ),
     );
   }
@@ -238,6 +301,9 @@ class _ToolButton extends StatelessWidget {
   final DrawingTool currentTool;
   final VoidCallback onTap;
   final bool isHighlighted;
+  final double size;
+  final double iconSize;
+  final double margin;
 
   const _ToolButton({
     required this.icon,
@@ -246,6 +312,9 @@ class _ToolButton extends StatelessWidget {
     required this.currentTool,
     required this.onTap,
     this.isHighlighted = false,
+    this.size = AppDimensions.toolButtonSize,
+    this.iconSize = AppDimensions.iconSizeSM,
+    this.margin = AppDimensions.toolButtonMargin,
   });
 
   @override
@@ -256,9 +325,9 @@ class _ToolButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          width: AppDimensions.toolButtonSize,
-          height: AppDimensions.toolButtonSize,
-          margin: const EdgeInsets.all(AppDimensions.toolButtonMargin),
+          width: size,
+          height: size,
+          margin: EdgeInsets.all(margin),
           decoration: BoxDecoration(
             color: isActive
                 ? AppColors.primary.withValues(alpha: 0.3)
@@ -273,7 +342,7 @@ class _ToolButton extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            size: AppDimensions.iconSizeSM,
+            size: iconSize,
             color: isActive
                 ? AppColors.toolbarIconActive
                 : isHighlighted

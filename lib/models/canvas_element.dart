@@ -142,14 +142,29 @@ class StrokeElement extends CanvasElement {
       return;
     }
 
+    // Use Catmull-Rom-style smoothing for pen/highlighter
     final path = Path();
     path.moveTo(points.first.x, points.first.y);
-    for (int i = 1; i < points.length - 1; i++) {
-      final p0 = points[i];
-      final p1 = points[i + 1];
-      path.quadraticBezierTo(p0.x, p0.y, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+
+    if (points.length == 2) {
+      path.lineTo(points.last.x, points.last.y);
+    } else {
+      // Smooth curve: use midpoints as control points
+      for (int i = 1; i < points.length - 1; i++) {
+        final p1 = points[i];
+        final p2 = points[i + 1];
+
+        // Control point is the current point, end is midpoint between current and next
+        final midX = (p1.x + p2.x) / 2;
+        final midY = (p1.y + p2.y) / 2;
+        path.quadraticBezierTo(p1.x, p1.y, midX, midY);
+      }
+      // Last segment
+      final last = points.last;
+      final secondLast = points[points.length - 2];
+      path.quadraticBezierTo(secondLast.x, secondLast.y, last.x, last.y);
     }
-    path.lineTo(points.last.x, points.last.y);
+
     canvas.drawPath(path, paint);
   }
 

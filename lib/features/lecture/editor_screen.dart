@@ -28,11 +28,11 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   final FileService _fileService = FileService();
   bool _showParticipants = false;
+  double _rightToolbarWidth = AppDimensions.rightToolbarWidth;
 
   void _saveCurrentLecture() async {
     final lecture = ref.read(lectureProvider).lecture;
     if (lecture == null) return;
-    // Sync current page elements to lecture
     ref.read(lectureProvider.notifier).updateCurrentPageElements(
           ref.read(canvasProvider).elements,
         );
@@ -105,15 +105,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         const Expanded(
                           child: CanvasScreen(),
                         ),
-                        // Right toolbar
-                        const RightToolbar(),
+                        // Right toolbar resize handle + toolbar
+                        _buildRightToolbar(),
                       ],
                     ),
                     // Participant panel overlay
                     if (_showParticipants && syncState.isConnected)
                       Positioned(
                         top: AppDimensions.spacingMD,
-                        right: AppDimensions.rightToolbarWidth +
+                        right: _rightToolbarWidth +
                             AppDimensions.spacingMD,
                         child: const ParticipantPanel(),
                       ),
@@ -130,6 +130,46 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRightToolbar() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Resize handle (on the left of the toolbar)
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            onHorizontalDragUpdate: (details) {
+              setState(() {
+                _rightToolbarWidth -= details.delta.dx;
+                _rightToolbarWidth = _rightToolbarWidth.clamp(
+                  AppConstants.minPanelWidth * 0.4, // min ~48
+                  AppConstants.maxPanelWidth * 0.6, // max ~240
+                );
+              });
+            },
+            child: Container(
+              width: AppDimensions.resizeHandleWidth,
+              color: Colors.grey.shade400,
+              child: Center(
+                child: Container(
+                  width: AppDimensions.spacingXS,
+                  height: AppDimensions.resizeIndicatorHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade500,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.borderRadiusXS),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Toolbar
+        RightToolbar(width: _rightToolbarWidth),
+      ],
     );
   }
 }

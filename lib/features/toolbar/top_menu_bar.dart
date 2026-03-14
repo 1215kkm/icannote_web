@@ -7,8 +7,10 @@ import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../collaboration/room_dialog.dart';
 
 class TopMenuBar extends ConsumerWidget {
@@ -16,47 +18,50 @@ class TopMenuBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
+
     return Container(
       height: AppDimensions.topMenuBarHeight,
       color: AppColors.menuBarBackground,
       child: Row(
         children: [
           _MenuBarItem(
-            label: 'Lecture',
-            onTap: () => _showLectureMenu(context, ref),
+            label: l10n.lecture,
+            onTapWithContext: (ctx) => _showLectureMenu(ctx, ref, l10n),
           ),
           _MenuBarItem(
-            label: 'Save/Print',
-            onTap: () => _showSaveMenu(context, ref),
+            label: l10n.savePrint,
+            onTapWithContext: (ctx) => _showSaveMenu(ctx, ref, l10n),
           ),
           _MenuBarItem(
-            label: 'Page',
-            onTap: () => _showPageMenu(context, ref),
+            label: l10n.page,
+            onTapWithContext: (ctx) => _showPageMenu(ctx, ref, l10n),
           ),
           _MenuBarItem(
-            label: 'Insert',
-            onTap: () {},
+            label: l10n.insert,
+            onTapWithContext: (_) {},
           ),
           _MenuBarItem(
-            label: 'Screen/Background',
-            onTap: () {},
+            label: l10n.screenBackground,
+            onTapWithContext: (_) {},
           ),
           _CollaborateMenuBarItem(),
           _MenuBarItem(
-            label: 'Sound/Video',
+            label: l10n.soundVideo,
             isHighlighted: true,
-            onTap: () {},
+            onTapWithContext: (_) {},
           ),
           _MenuBarItem(
-            label: 'Settings',
+            label: l10n.settings,
             isHighlighted: true,
-            onTap: () => context.go('/settings'),
+            onTapWithContext: (_) => context.go('/settings'),
           ),
           _LoginMenuBarItem(),
           _MenuBarItem(
-            label: 'Help',
+            label: l10n.help,
             isHighlighted: true,
-            onTap: () {},
+            onTapWithContext: (ctx) => _showHelpMenu(ctx, ref, l10n),
           ),
           const Spacer(),
         ],
@@ -64,87 +69,140 @@ class TopMenuBar extends ConsumerWidget {
     );
   }
 
-  void _showLectureMenu(BuildContext context, WidgetRef ref) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
+  void _showLectureMenu(BuildContext buttonContext, WidgetRef ref, AppLocalizations l10n) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
     final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
     showMenu(
-      context: context,
+      context: buttonContext,
       position: RelativeRect.fromLTRB(
-          offset.dx, AppDimensions.topMenuBarHeight, 0, 0),
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry>[
         PopupMenuItem(
-          child: const Text('New Lecture'),
-          onTap: () => _showNewLectureDialog(context, ref),
+          child: Text(l10n.newLecture),
+          onTap: () => _showNewLectureDialog(buttonContext, ref),
         ),
         PopupMenuItem(
-          child: const Text('Open Lecture File'),
-          onTap: () => _openLectureFile(context, ref),
+          child: Text(l10n.openLectureFile),
+          onTap: () => _openLectureFile(buttonContext, ref),
         ),
         PopupMenuItem(
-          child: const Text('Add Textbook File'),
-          onTap: () => _openTextbookFile(context),
+          child: Text(l10n.addTextbook),
+          onTap: () => _openTextbookFile(buttonContext),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
-          child: const Text('Close Lecture'),
+          child: Text(l10n.closeLecture),
           onTap: () => ref.read(lectureProvider.notifier).closeLecture(),
         ),
       ],
     );
   }
 
-  void _showSaveMenu(BuildContext context, WidgetRef ref) {
+  void _showSaveMenu(BuildContext buttonContext, WidgetRef ref, AppLocalizations l10n) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+    final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
     showMenu(
-      context: context,
+      context: buttonContext,
       position: RelativeRect.fromLTRB(
-          80, AppDimensions.topMenuBarHeight, 0, 0),
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry>[
         PopupMenuItem(
-          child: const Text('Save'),
-          onTap: () => _saveLecture(context, ref),
+          child: Text(l10n.save),
+          onTap: () => _saveLecture(buttonContext, ref),
         ),
-        const PopupMenuItem(child: Text('Save with Protection')),
+        PopupMenuItem(child: Text('${l10n.save} (Protected)')),
         PopupMenuItem(
-          child: const Text('Save As...'),
-          onTap: () => _saveLectureAs(context, ref),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          child: const Text('Save as PDF'),
-          onTap: () => _showComingSoon(context, 'PDF export'),
-        ),
-        PopupMenuItem(
-          child: const Text('Save as Image'),
-          onTap: () => _showComingSoon(context, 'Image export'),
+          child: Text(l10n.saveAs),
+          onTap: () => _saveLectureAs(buttonContext, ref),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
-          child: const Text('Send by Email'),
-          onTap: () => _showComingSoon(context, 'Email'),
+          child: Text(l10n.saveAsPdf),
+          onTap: () => _showComingSoon(buttonContext, 'PDF export'),
         ),
         PopupMenuItem(
-          child: const Text('Print'),
-          onTap: () => _showComingSoon(context, 'Print'),
+          child: Text(l10n.saveAsImage),
+          onTap: () => _showComingSoon(buttonContext, 'Image export'),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          child: Text(l10n.sendByEmail),
+          onTap: () => _showComingSoon(buttonContext, 'Email'),
+        ),
+        PopupMenuItem(
+          child: Text(l10n.print_),
+          onTap: () => _showComingSoon(buttonContext, 'Print'),
         ),
       ],
     );
   }
 
-  void _showPageMenu(BuildContext context, WidgetRef ref) {
+  void _showPageMenu(BuildContext buttonContext, WidgetRef ref, AppLocalizations l10n) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+    final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
     showMenu(
-      context: context,
+      context: buttonContext,
       position: RelativeRect.fromLTRB(
-          160, AppDimensions.topMenuBarHeight, 0, 0),
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: [
         PopupMenuItem(
-          child: const Text('Add Page'),
+          child: Text(l10n.addPage),
           onTap: () => ref.read(lectureProvider.notifier).addPage(),
         ),
         PopupMenuItem(
-          child: const Text('Restore Deleted Page'),
+          child: Text(l10n.get('restore_deleted_page') != 'restore_deleted_page' ? l10n.get('restore_deleted_page') : 'Restore Deleted Page'),
           onTap: () =>
               ref.read(lectureProvider.notifier).restoreDeletedPage(),
         ),
+      ],
+    );
+  }
+
+  void _showHelpMenu(BuildContext buttonContext, WidgetRef ref, AppLocalizations l10n) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+    final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
+    final currentLang = ref.read(settingsProvider).language;
+
+    showMenu(
+      context: buttonContext,
+      position: RelativeRect.fromLTRB(
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
+      items: <PopupMenuEntry>[
+        PopupMenuItem(
+          child: const Text('About ICanNote'),
+          onTap: () {},
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          enabled: false,
+          child: Text(
+            l10n.language,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        ...AppLanguage.values.map((lang) => PopupMenuItem(
+          child: Row(
+            children: [
+              Icon(
+                currentLang == lang ? Icons.check : Icons.check,
+                size: 16,
+                color: currentLang == lang ? AppColors.primary : Colors.transparent,
+              ),
+              const SizedBox(width: 8),
+              Text(lang.label),
+            ],
+          ),
+          onTap: () {
+            ref.read(settingsProvider.notifier).setLanguage(lang);
+          },
+        )),
       ],
     );
   }
@@ -185,7 +243,6 @@ class TopMenuBar extends ConsumerWidget {
     Future.microtask(() async {
       final lecture = ref.read(lectureProvider).lecture;
       if (lecture == null) return;
-      // Ensure current page elements are synced
       ref.read(lectureProvider.notifier).updateCurrentPageElements(
             ref.read(canvasProvider).elements,
           );
@@ -237,7 +294,6 @@ class TopMenuBar extends ConsumerWidget {
   }
 
   void _showNewLectureDialog(BuildContext context, WidgetRef ref) {
-    // Defer to next frame so the menu closes first
     Future.microtask(() {
       if (!context.mounted) return;
       showDialog(
@@ -250,19 +306,19 @@ class TopMenuBar extends ConsumerWidget {
 
 class _MenuBarItem extends StatelessWidget {
   final String label;
-  final VoidCallback onTap;
+  final void Function(BuildContext context) onTapWithContext;
   final bool isHighlighted;
 
   const _MenuBarItem({
     required this.label,
-    required this.onTap,
+    required this.onTapWithContext,
     this.isHighlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () => onTapWithContext(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.menuItemPaddingH,
@@ -290,19 +346,21 @@ class _LoginMenuBarItem extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     if (authState.isAuthenticated) {
-      return InkWell(
-        onTap: () => _showUserMenu(context, ref, authState),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.menuItemPaddingH,
-            vertical: AppDimensions.menuItemPaddingV,
-          ),
-          child: Text(
-            authState.user?.displayName ?? authState.user?.email ?? 'User',
-            style: const TextStyle(
-              color: AppColors.menuBarTextActive,
-              fontSize: AppDimensions.fontSizeMD,
-              fontWeight: FontWeight.bold,
+      return Builder(
+        builder: (buttonContext) => InkWell(
+          onTap: () => _showUserMenu(buttonContext, ref, authState),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.menuItemPaddingH,
+              vertical: AppDimensions.menuItemPaddingV,
+            ),
+            child: Text(
+              authState.user?.displayName ?? authState.user?.email ?? 'User',
+              style: const TextStyle(
+                color: AppColors.menuBarTextActive,
+                fontSize: AppDimensions.fontSizeMD,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -312,15 +370,19 @@ class _LoginMenuBarItem extends ConsumerWidget {
     return _MenuBarItem(
       label: 'Login',
       isHighlighted: true,
-      onTap: () => context.go('/login'),
+      onTapWithContext: (_) => context.go('/login'),
     );
   }
 
   void _showUserMenu(
-      BuildContext context, WidgetRef ref, AuthState authState) {
+      BuildContext buttonContext, WidgetRef ref, AuthState authState) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+    final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
     showMenu<String>(
-      context: context,
-      position: const RelativeRect.fromLTRB(500, AppDimensions.topMenuBarHeight, 0, 0),
+      context: buttonContext,
+      position: RelativeRect.fromLTRB(
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           enabled: false,
@@ -328,7 +390,7 @@ class _LoginMenuBarItem extends ConsumerWidget {
         ),
         const PopupMenuDivider(),
         PopupMenuItem<String>(
-          onTap: () => context.go('/dashboard'),
+          onTap: () => buttonContext.go('/dashboard'),
           child: const Text('Dashboard'),
         ),
         PopupMenuItem<String>(
@@ -346,41 +408,46 @@ class _CollaborateMenuBarItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return _MenuBarItem(
-      label: syncState.isConnected ? 'Collaborate (Live)' : 'Collaborate',
+      label: syncState.isConnected ? '${l10n.collaborate} (Live)' : l10n.collaborate,
       isHighlighted: syncState.isConnected,
-      onTap: () => _showCollaborateMenu(context, ref, syncState),
+      onTapWithContext: (ctx) => _showCollaborateMenu(ctx, ref, syncState, l10n),
     );
   }
 
   void _showCollaborateMenu(
-      BuildContext context, WidgetRef ref, SyncState syncState) {
+      BuildContext buttonContext, WidgetRef ref, SyncState syncState, AppLocalizations l10n) {
+    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+    final offset = button.localToGlobal(Offset.zero);
+    final size = button.size;
     showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(
-          400, AppDimensions.topMenuBarHeight, 0, 0),
+      context: buttonContext,
+      position: RelativeRect.fromLTRB(
+          offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry>[
         if (!syncState.isConnected) ...[
           PopupMenuItem(
-            child: const Text('Create Room'),
+            child: Text(l10n.createRoom),
             onTap: () {
               Future.microtask(() {
-                if (!context.mounted) return;
+                if (!buttonContext.mounted) return;
                 showDialog(
-                  context: context,
+                  context: buttonContext,
                   builder: (_) => const CreateRoomDialog(),
                 );
               });
             },
           ),
           PopupMenuItem(
-            child: const Text('Join Room'),
+            child: Text(l10n.joinRoom),
             onTap: () {
               Future.microtask(() {
-                if (!context.mounted) return;
+                if (!buttonContext.mounted) return;
                 showDialog(
-                  context: context,
+                  context: buttonContext,
                   builder: (_) => const JoinRoomDialog(),
                 );
               });
@@ -397,12 +464,12 @@ class _CollaborateMenuBarItem extends ConsumerWidget {
           ),
           PopupMenuItem(
             enabled: false,
-            child: Text('${syncState.participants.length} participants'),
+            child: Text('${syncState.participants.length} ${l10n.participants}'),
           ),
           const PopupMenuDivider(),
           PopupMenuItem(
             child: Text(
-              syncState.isHost ? 'Close Room' : 'Leave Room',
+              syncState.isHost ? l10n.closeRoom : l10n.leaveRoom,
               style: TextStyle(color: AppColors.warningText),
             ),
             onTap: () => ref.read(syncProvider.notifier).leaveRoom(),

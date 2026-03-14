@@ -4,17 +4,25 @@ import '../../../core/constants/app_colors.dart';
 class CompactColorPicker extends StatelessWidget {
   final Color selectedColor;
   final ValueChanged<Color> onColorSelected;
+  final double width;
 
   const CompactColorPicker({
     super.key,
     required this.selectedColor,
     required this.onColorSelected,
+    this.width = 48,
   });
 
   @override
   Widget build(BuildContext context) {
+    final availableWidth = width - 4; // padding
+    // Calculate color swatch size based on available width
+    // 3 columns by default, scale with width
+    final cols = (availableWidth / 16).floor().clamp(3, 6);
+    final swatchSize = ((availableWidth - (cols - 1)) / cols).clamp(10.0, 28.0);
+
     return Container(
-      width: 48,
+      width: width,
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Wrap(
         spacing: 1,
@@ -24,8 +32,8 @@ class CompactColorPicker extends StatelessWidget {
           return GestureDetector(
             onTap: () => onColorSelected(color),
             child: Container(
-              width: 14,
-              height: 14,
+              width: swatchSize,
+              height: swatchSize,
               decoration: BoxDecoration(
                 color: color,
                 border: Border.all(
@@ -71,7 +79,6 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
           runSpacing: 8,
           children: [
             ...AppColors.defaultPalette.map((color) => _colorCircle(color)),
-            // Extended palette
             ..._extendedColors.map((color) => _colorCircle(color)),
           ],
         ),

@@ -210,8 +210,9 @@ class CanvasNotifier extends StateNotifier<CanvasState> {
       return;
     }
 
-    if (tool == DrawingTool.text || tool == DrawingTool.sticker) {
-      // Text and sticker are handled via separate methods
+    if (tool == DrawingTool.text || tool == DrawingTool.sticker ||
+        tool == DrawingTool.laserPointer) {
+      // These are handled via separate methods in the canvas screen
       return;
     }
 
@@ -271,6 +272,13 @@ class CanvasNotifier extends StateNotifier<CanvasState> {
           ),
         );
       } else {
+        // Skip points that are too close (reduces jaggedness)
+        if (stroke.points.isNotEmpty) {
+          final last = stroke.points.last;
+          final dx = last.x - position.dx;
+          final dy = last.y - position.dy;
+          if (dx * dx + dy * dy < 4.0) return; // min 2px distance
+        }
         state = state.copyWith(
           activeElement: () => stroke.copyWith(
             points: [...stroke.points, point],
@@ -378,6 +386,16 @@ class CanvasNotifier extends StateNotifier<CanvasState> {
     );
     if (el is StickerElement) {
       _modifyElement(id, el.copyWith(isRevealed: true));
+    }
+  }
+
+  void toggleSticker(String id) {
+    final el = state.elements.firstWhere(
+      (e) => e.id == id,
+      orElse: () => throw StateError('Element not found'),
+    );
+    if (el is StickerElement) {
+      _modifyElement(id, el.copyWith(isRevealed: !el.isRevealed));
     }
   }
 
