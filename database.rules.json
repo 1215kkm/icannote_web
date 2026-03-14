@@ -1,0 +1,30 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        "info": {
+          ".read": true,
+          ".write": "auth != null"
+        },
+        "elements": {
+          "$pageId": {
+            ".read": true,
+            ".write": "auth != null"
+          }
+        },
+        "cursors": {
+          "$userId": {
+            ".read": true,
+            ".write": "auth != null && auth.uid === $userId"
+          }
+        },
+        "participants": {
+          "$userId": {
+            ".read": true,
+            ".write": "auth != null && (auth.uid === $userId || data.parent().parent().child('info').child('hostId').val() === auth.uid)"
+          }
+        }
+      }
+    }
+  }
+}
