@@ -6,8 +6,10 @@ import '../../core/constants/app_dimensions.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
+import '../collaboration/room_dialog.dart';
 
 class TopMenuBar extends ConsumerWidget {
   const TopMenuBar({super.key});
@@ -39,6 +41,7 @@ class TopMenuBar extends ConsumerWidget {
             label: 'Screen/Background',
             onTap: () {},
           ),
+          _CollaborateMenuBarItem(),
           _MenuBarItem(
             label: 'Sound/Video',
             isHighlighted: true,
@@ -334,6 +337,77 @@ class _LoginMenuBarItem extends ConsumerWidget {
           },
           child: const Text('Sign Out'),
         ),
+      ],
+    );
+  }
+}
+
+class _CollaborateMenuBarItem extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final syncState = ref.watch(syncProvider);
+
+    return _MenuBarItem(
+      label: syncState.isConnected ? 'Collaborate (Live)' : 'Collaborate',
+      isHighlighted: syncState.isConnected,
+      onTap: () => _showCollaborateMenu(context, ref, syncState),
+    );
+  }
+
+  void _showCollaborateMenu(
+      BuildContext context, WidgetRef ref, SyncState syncState) {
+    showMenu(
+      context: context,
+      position: const RelativeRect.fromLTRB(
+          400, AppDimensions.topMenuBarHeight, 0, 0),
+      items: <PopupMenuEntry>[
+        if (!syncState.isConnected) ...[
+          PopupMenuItem(
+            child: const Text('Create Room'),
+            onTap: () {
+              Future.microtask(() {
+                if (!context.mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => const CreateRoomDialog(),
+                );
+              });
+            },
+          ),
+          PopupMenuItem(
+            child: const Text('Join Room'),
+            onTap: () {
+              Future.microtask(() {
+                if (!context.mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => const JoinRoomDialog(),
+                );
+              });
+            },
+          ),
+        ],
+        if (syncState.isConnected) ...[
+          PopupMenuItem(
+            enabled: false,
+            child: Text(
+              'Room: ${syncState.inviteCode ?? ""}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          PopupMenuItem(
+            enabled: false,
+            child: Text('${syncState.participants.length} participants'),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            child: Text(
+              syncState.isHost ? 'Close Room' : 'Leave Room',
+              style: TextStyle(color: AppColors.warningText),
+            ),
+            onTap: () => ref.read(syncProvider.notifier).leaveRoom(),
+          ),
+        ],
       ],
     );
   }

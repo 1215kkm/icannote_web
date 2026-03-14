@@ -4,6 +4,7 @@ import '../../features/lecture/editor_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
+import '../../features/collaboration/join_room_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -27,6 +28,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
+    ),
+    GoRoute(
+      path: '/room/:inviteCode',
+      builder: (context, state) {
+        final inviteCode = state.pathParameters['inviteCode'] ?? '';
+        return JoinRoomScreen(inviteCode: inviteCode);
+      },
     ),
   ],
 );

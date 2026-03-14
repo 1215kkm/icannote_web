@@ -3,13 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_dimensions.dart';
+import '../../core/constants/app_colors.dart';
 import '../toolbar/top_menu_bar.dart';
 import '../toolbar/right_toolbar.dart';
 import '../toolbar/bottom_toolbar.dart';
 import '../pages_panel/pages_panel.dart';
 import '../canvas/canvas_screen.dart';
+import '../collaboration/participant_panel.dart';
 import '../../widgets/resizable_panel.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -21,6 +25,7 @@ class EditorScreen extends ConsumerStatefulWidget {
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   final FileService _fileService = FileService();
+  bool _showParticipants = false;
 
   void _saveCurrentLecture() async {
     final lecture = ref.read(lectureProvider).lecture;
@@ -43,6 +48,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final syncState = ref.watch(syncProvider);
+
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyZ, control: true): () =>
@@ -68,24 +75,50 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             children: [
               // Top menu bar
               const TopMenuBar(),
+              // Collaboration status bar (when connected)
+              if (syncState.isConnected)
+                _CollaborationBar(
+                  participantCount: syncState.participants.length,
+                  inviteCode: syncState.inviteCode ?? '',
+                  isHost: syncState.isHost,
+                  onToggleParticipants: () {
+                    setState(() {
+                      _showParticipants = !_showParticipants;
+                    });
+                  },
+                  onLeave: () =>
+                      ref.read(syncProvider.notifier).leaveRoom(),
+                ),
               // Main content area
               Expanded(
-                child: Row(
+                child: Stack(
                   children: [
-                    // Left panel - page thumbnails (resizable)
-                    ResizablePanel(
-                      initialWidth: AppConstants.defaultLeftPanelWidth,
-                      isLeft: true,
-                      child: PagesPanel(
-                        width: AppConstants.defaultLeftPanelWidth,
+                    Row(
+                      children: [
+                        // Left panel - page thumbnails (resizable)
+                        ResizablePanel(
+                          initialWidth: AppConstants.defaultLeftPanelWidth,
+                          isLeft: true,
+                          child: PagesPanel(
+                            width: AppConstants.defaultLeftPanelWidth,
+                          ),
+                        ),
+                        // Canvas area (center)
+                        const Expanded(
+                          child: CanvasScreen(),
+                        ),
+                        // Right toolbar
+                        const RightToolbar(),
+                      ],
+                    ),
+                    // Participant panel overlay
+                    if (_showParticipants && syncState.isConnected)
+                      Positioned(
+                        top: AppDimensions.spacingMD,
+                        right: AppDimensions.rightToolbarWidth +
+                            AppDimensions.spacingMD,
+                        child: const ParticipantPanel(),
                       ),
-                    ),
-                    // Canvas area (center)
-                    const Expanded(
-                      child: CanvasScreen(),
-                    ),
-                    // Right toolbar
-                    const RightToolbar(),
                   ],
                 ),
               ),
@@ -94,6 +127,76 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CollaborationBar extends StatelessWidget {
+  final int participantCount;
+  final String inviteCode;
+  final bool isHost;
+  final VoidCallback onToggleParticipants;
+  final VoidCallback onLeave;
+
+  const _CollaborationBar({
+    required this.participantCount,
+    required this.inviteCode,
+    required this.isHost,
+    required this.onToggleParticipants,
+    required this.onLeave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 28,
+      color: AppColors.primary.withValues(alpha: 0.15),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.spacingLG),
+      child: Row(
+        children: [
+          const Icon(Icons.people, size: 14, color: AppColors.primary),
+          const SizedBox(width: AppDimensions.spacingSM),
+          Text(
+            'Live Session  |  $participantCount participants  |  Code: $inviteCode',
+            style: const TextStyle(
+              fontSize: AppDimensions.fontSizeSM,
+              color: AppColors.primary,
+            ),
+          ),
+          const Spacer(),
+          InkWell(
+            onTap: onToggleParticipants,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMD),
+              child: Text(
+                'Participants',
+                style: TextStyle(
+                  fontSize: AppDimensions.fontSizeSM,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: onLeave,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMD),
+              child: Text(
+                isHost ? 'Close Room' : 'Leave Room',
+                style: TextStyle(
+                  fontSize: AppDimensions.fontSizeSM,
+                  color: AppColors.warningText,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

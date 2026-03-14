@@ -790,6 +790,27 @@ class CanvasNotifier extends StateNotifier<CanvasState> {
         return ShapeType.rectangle;
     }
   }
+
+  // ──────────────────── Remote Sync Methods ────────────────────
+
+  /// Merge an element received from remote sync.
+  /// Adds or updates without triggering sync back (avoids echo).
+  void mergeRemoteElement(CanvasElement element) {
+    final elements = [...state.elements];
+    final index = elements.indexWhere((e) => e.id == element.id);
+    if (index >= 0) {
+      elements[index] = element;
+    } else {
+      elements.add(element);
+    }
+    state = state.copyWith(elements: elements);
+  }
+
+  /// Remove an element received from remote sync.
+  void removeRemoteElement(String elementId) {
+    final elements = state.elements.where((e) => e.id != elementId).toList();
+    state = state.copyWith(elements: elements);
+  }
 }
 
 final canvasProvider =

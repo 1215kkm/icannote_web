@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../models/stroke.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_dimensions.dart';
 import 'canvas_painter.dart';
+import '../collaboration/cursor_overlay.dart';
 
 class CanvasScreen extends ConsumerStatefulWidget {
   const CanvasScreen({super.key});
@@ -47,6 +49,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
     final pos = _toCanvasPosition(event.position, context);
     final tool = ref.read(canvasProvider).currentTool;
 
+    // Check canDraw permission for collaboration
+    final syncState = ref.read(syncProvider);
+    if (syncState.isConnected && !syncState.canDraw) {
+      return; // Not allowed to draw
+    }
+
     if (tool == DrawingTool.text) {
       _showTextInputAt(pos);
       return;
@@ -58,6 +66,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   void _handlePointerMove(PointerMoveEvent event) {
     final pos = _toCanvasPosition(event.position, context);
     ref.read(canvasProvider.notifier).updateStroke(pos);
+
+    // Send cursor position for collaboration
+    ref.read(syncProvider.notifier).sendCursorPosition(pos.dx, pos.dy);
   }
 
   void _handlePointerUp(PointerUpEvent event) {
@@ -160,6 +171,8 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen> {
                       ),
                     ),
                   ),
+                  // Remote cursor overlay
+                  const CursorOverlay(),
                   // Text input overlay
                   if (_showTextInput)
                     Positioned(
