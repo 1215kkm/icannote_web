@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/canvas_provider.dart';
+import '../../services/file_service.dart';
 import '../../core/constants/app_constants.dart';
 
 class TopMenuBar extends ConsumerWidget {
@@ -71,11 +73,13 @@ class TopMenuBar extends ConsumerWidget {
           child: const Text('New Lecture'),
           onTap: () => _showNewLectureDialog(context, ref),
         ),
-        const PopupMenuItem(
-          child: Text('Open Lecture File'),
+        PopupMenuItem(
+          child: const Text('Open Lecture File'),
+          onTap: () => _openLectureFile(context, ref),
         ),
-        const PopupMenuItem(
-          child: Text('Add Textbook File'),
+        PopupMenuItem(
+          child: const Text('Add Textbook File'),
+          onTap: () => _openTextbookFile(context),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
@@ -91,15 +95,33 @@ class TopMenuBar extends ConsumerWidget {
       context: context,
       position: const RelativeRect.fromLTRB(80, 32, 0, 0),
       items: <PopupMenuEntry>[
-        const PopupMenuItem(child: Text('Save')),
+        PopupMenuItem(
+          child: const Text('Save'),
+          onTap: () => _saveLecture(context, ref),
+        ),
         const PopupMenuItem(child: Text('Save with Protection')),
-        const PopupMenuItem(child: Text('Save As...')),
+        PopupMenuItem(
+          child: const Text('Save As...'),
+          onTap: () => _saveLectureAs(context, ref),
+        ),
         const PopupMenuDivider(),
-        const PopupMenuItem(child: Text('Save as PDF')),
-        const PopupMenuItem(child: Text('Save as Image')),
+        PopupMenuItem(
+          child: const Text('Save as PDF'),
+          onTap: () => _showComingSoon(context, 'PDF export'),
+        ),
+        PopupMenuItem(
+          child: const Text('Save as Image'),
+          onTap: () => _showComingSoon(context, 'Image export'),
+        ),
         const PopupMenuDivider(),
-        const PopupMenuItem(child: Text('Send by Email')),
-        const PopupMenuItem(child: Text('Print')),
+        PopupMenuItem(
+          child: const Text('Send by Email'),
+          onTap: () => _showComingSoon(context, 'Email'),
+        ),
+        PopupMenuItem(
+          child: const Text('Print'),
+          onTap: () => _showComingSoon(context, 'Print'),
+        ),
       ],
     );
   }
@@ -120,6 +142,93 @@ class TopMenuBar extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  void _openLectureFile(BuildContext context, WidgetRef ref) {
+    Future.microtask(() async {
+      final fileService = FileService();
+      final lecture = await fileService.openIcnFile();
+      if (lecture != null && context.mounted) {
+        ref.read(lectureProvider.notifier).loadLecture(lecture);
+        if (lecture.pages.isNotEmpty) {
+          ref.read(canvasProvider.notifier).loadElements(
+                lecture.pages.first.visibleElements,
+              );
+        }
+      }
+    });
+  }
+
+  void _openTextbookFile(BuildContext context) {
+    Future.microtask(() async {
+      final fileService = FileService();
+      final files = await fileService.pickDocumentFiles();
+      if (files != null && files.isNotEmpty && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selected ${files.length} file(s). '
+              'Document conversion requires backend server (coming soon).',
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  void _saveLecture(BuildContext context, WidgetRef ref) {
+    Future.microtask(() async {
+      final lecture = ref.read(lectureProvider).lecture;
+      if (lecture == null) return;
+      // Ensure current page elements are synced
+      ref.read(lectureProvider.notifier).updateCurrentPageElements(
+            ref.read(canvasProvider).elements,
+          );
+      final updatedLecture = ref.read(lectureProvider).lecture!;
+      final fileService = FileService();
+      final saved = await fileService.saveLecture(updatedLecture);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(saved ? 'Lecture saved.' : 'Save cancelled.'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    });
+  }
+
+  void _saveLectureAs(BuildContext context, WidgetRef ref) {
+    Future.microtask(() async {
+      final lecture = ref.read(lectureProvider).lecture;
+      if (lecture == null) return;
+      ref.read(lectureProvider.notifier).updateCurrentPageElements(
+            ref.read(canvasProvider).elements,
+          );
+      final updatedLecture = ref.read(lectureProvider).lecture!;
+      final fileService = FileService();
+      final saved = await fileService.saveLectureAs(updatedLecture);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(saved ? 'Lecture saved.' : 'Save cancelled.'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    });
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    Future.microtask(() {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$feature coming soon.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    });
   }
 
   void _showNewLectureDialog(BuildContext context, WidgetRef ref) {

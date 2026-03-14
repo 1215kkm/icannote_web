@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/canvas_provider.dart';
+import '../../services/file_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 
@@ -29,9 +31,7 @@ class HomeScreen extends ConsumerWidget {
               iconColor: AppColors.secondary,
               title: 'Lecture File',
               subtitle: 'Open an ICanNote file\n(*.icn) to start',
-              onTap: () {
-                // TODO: file picker for .icn files
-              },
+              onTap: () => _openIcnFile(context, ref),
             ),
             const SizedBox(width: 32),
             _HomeCard(
@@ -39,14 +39,42 @@ class HomeScreen extends ConsumerWidget {
               iconColor: const Color(0xFF5BC0DE),
               title: 'Open Textbook',
               subtitle: 'Open documents in\nvarious formats',
-              onTap: () {
-                // TODO: file picker for PDF/PPT/DOC/HWP
-              },
+              onTap: () => _openTextbook(context),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openIcnFile(BuildContext context, WidgetRef ref) async {
+    final fileService = FileService();
+    final lecture = await fileService.openIcnFile();
+    if (lecture != null && context.mounted) {
+      ref.read(lectureProvider.notifier).loadLecture(lecture);
+      // Load first page elements into canvas
+      if (lecture.pages.isNotEmpty) {
+        ref.read(canvasProvider.notifier).loadElements(
+              lecture.pages.first.visibleElements,
+            );
+      }
+      context.go('/editor');
+    }
+  }
+
+  Future<void> _openTextbook(BuildContext context) async {
+    final fileService = FileService();
+    final files = await fileService.pickDocumentFiles();
+    if (files != null && files.isNotEmpty && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Selected ${files.length} file(s). '
+            'Document conversion requires backend server (coming soon).',
+          ),
+        ),
+      );
+    }
   }
 
   void _showNewLectureDialog(BuildContext context, WidgetRef ref) {
