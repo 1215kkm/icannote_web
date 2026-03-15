@@ -5,7 +5,7 @@ import '../../models/canvas_element.dart';
 /// Layered canvas painter using CanvasElement model.
 ///
 /// Layers (bottom to top):
-/// 1. Background (page color/image)
+/// 1. Background (page color/pattern)
 /// 2. Content cache (completed elements rendered as ui.Image)
 /// 3. Active element (in-progress drawing)
 /// 4. UI overlay (selection handles)
@@ -14,16 +14,23 @@ class CanvasPainter extends CustomPainter {
   final CanvasElement? activeElement;
   final ui.Image? cachedImage;
   final String? selectedElementId;
+  final String? backgroundPattern;
 
   CanvasPainter({
     required this.elements,
     this.activeElement,
     this.cachedImage,
     this.selectedElementId,
+    this.backgroundPattern,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Layer 1: Background pattern
+    if (backgroundPattern != null) {
+      _paintBackgroundPattern(canvas, size, backgroundPattern!);
+    }
+
     // Layer 2: Content - completed elements (skip stickers, rendered as widgets)
     if (cachedImage != null) {
       canvas.drawImage(cachedImage!, Offset.zero, Paint());
@@ -47,6 +54,47 @@ class CanvasPainter extends CustomPainter {
       if (selected.isNotEmpty) {
         _paintSelectionHandles(canvas, selected.first);
       }
+    }
+  }
+
+  void _paintBackgroundPattern(Canvas canvas, Size size, String pattern) {
+    final paint = Paint()
+      ..color = const Color(0xFFDDDDDD)
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke;
+
+    switch (pattern) {
+      case 'grid':
+        const spacing = 30.0;
+        for (double x = 0; x <= size.width; x += spacing) {
+          canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+        }
+        for (double y = 0; y <= size.height; y += spacing) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+        }
+        break;
+      case 'ruled':
+        const spacing = 30.0;
+        for (double y = spacing; y <= size.height; y += spacing) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+        }
+        // Red margin line
+        final marginPaint = Paint()
+          ..color = const Color(0xFFFFCDD2)
+          ..strokeWidth = 1.0;
+        canvas.drawLine(const Offset(80, 0), Offset(80, size.height), marginPaint);
+        break;
+      case 'dots':
+        const spacing = 25.0;
+        final dotPaint = Paint()
+          ..color = const Color(0xFFCCCCCC)
+          ..style = PaintingStyle.fill;
+        for (double x = spacing; x <= size.width; x += spacing) {
+          for (double y = spacing; y <= size.height; y += spacing) {
+            canvas.drawCircle(Offset(x, y), 1.5, dotPaint);
+          }
+        }
+        break;
     }
   }
 
@@ -102,6 +150,7 @@ class CanvasPainter extends CustomPainter {
     return oldDelegate.activeElement != activeElement ||
         oldDelegate.elements.length != elements.length ||
         oldDelegate.cachedImage != cachedImage ||
-        oldDelegate.selectedElementId != selectedElementId;
+        oldDelegate.selectedElementId != selectedElementId ||
+        oldDelegate.backgroundPattern != backgroundPattern;
   }
 }

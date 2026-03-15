@@ -4,9 +4,15 @@ import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../models/canvas_element.dart';
+import '../../services/canvas_export_service.dart';
 import '../library/library_panel.dart';
 import '../canvas/graph_overlay.dart';
 import '../recording/recording_overlay.dart';
+
+/// Provider for auto-label counters
+final _autoAlphabetCounterProvider = StateProvider<int>((ref) => 0);
+final _autoNumberCounterProvider = StateProvider<int>((ref) => 0);
 
 class BottomToolbar extends ConsumerWidget {
   const BottomToolbar({super.key});
@@ -71,8 +77,8 @@ class BottomToolbar extends ConsumerWidget {
           // Toolbar actions
           _BottomAction(
             icon: Icons.flip,
-            tooltip: 'Invert',
-            onTap: () {},
+            tooltip: 'Invert Colors',
+            onTap: () => _invertColors(ref),
           ),
           _BottomAction(
             icon: Icons.arrow_upward,
@@ -137,7 +143,7 @@ class BottomToolbar extends ConsumerWidget {
           _BottomAction(
             icon: Icons.screenshot,
             tooltip: 'Screen Capture',
-            onTap: () {},
+            onTap: () => _screenCapture(context, ref),
           ),
           const VerticalDivider(
               width: AppDimensions.dividerHeight,
@@ -145,12 +151,12 @@ class BottomToolbar extends ConsumerWidget {
           _BottomAction(
             icon: Icons.abc,
             tooltip: 'Auto Alphabet',
-            onTap: () {},
+            onTap: () => _autoAlphabet(ref),
           ),
           _BottomAction(
             icon: Icons.onetwothree,
             tooltip: 'Auto Number',
-            onTap: () {},
+            onTap: () => _autoNumber(ref),
           ),
           const Spacer(),
           // Zoom controls
@@ -189,6 +195,111 @@ class BottomToolbar extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Invert colors of all elements on the canvas.
+  void _invertColors(WidgetRef ref) {
+    final canvasState = ref.read(canvasProvider);
+    final elements = canvasState.elements;
+    if (elements.isEmpty) return;
+
+    final invertedElements = elements.map((el) {
+      if (el is StrokeElement) {
+        return el.copyWith(color: _invertColor(el.color));
+      } else if (el is ShapeElement) {
+        return el.copyWith(
+          strokeColor: _invertColor(el.strokeColor),
+          fillColor: el.fillColor != null ? _invertColor(el.fillColor!) : null,
+        );
+      } else if (el is TextCanvasElement) {
+        return el.copyWith(color: _invertColor(el.color));
+      }
+      return el;
+    }).toList();
+
+    ref.read(canvasProvider.notifier).loadElements(invertedElements);
+    ref.read(lectureProvider.notifier).updateCurrentPageElements(invertedElements);
+  }
+
+  Color _invertColor(Color color) {
+    return Color.fromARGB(
+      color.a.toInt(),
+      255 - color.r.toInt(),
+      255 - color.g.toInt(),
+      255 - color.b.toInt(),
+    );
+  }
+
+  /// Screen capture - exports the current canvas as an image.
+  void _screenCapture(BuildContext context, WidgetRef ref) {
+    Future.microtask(() async {
+      final lecture = ref.read(lectureProvider).lecture;
+      if (lecture == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No canvas to capture.')),
+          );
+        }
+        return;
+      }
+      final lectureState = ref.read(lectureProvider);
+      final bgColor = lectureState.currentPage?.backgroundColor ?? Colors.white;
+      final success = await CanvasExportService.exportAsImage(
+        elements: ref.read(canvasProvider).elements,
+        width: lecture.pageWidth,
+        height: lecture.pageHeight,
+        backgroundColor: bgColor,
+        fileName: 'screenshot_page${lectureState.currentPageIndex + 1}.png',
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(success ? 'Screen captured.' : 'Capture cancelled.')),
+        );
+      }
+    });
+  }
+
+  /// Auto Alphabet - adds sequential alphabet labels (A, B, C, ...).
+  void _autoAlphabet(WidgetRef ref) {
+    final counter = ref.read(_autoAlphabetCounterProvider);
+    final label = String.fromCharCode(65 + (counter % 26)); // A-Z
+    _addAutoLabel(ref, label);
+    ref.read(_autoAlphabetCounterProvider.notifier).state = counter + 1;
+  }
+
+  /// Auto Number - adds sequential number labels (1, 2, 3, ...).
+  void _autoNumber(WidgetRef ref) {
+    final counter = ref.read(_autoNumberCounterProvider);
+    final label = '${counter + 1}';
+    _addAutoLabel(ref, label);
+    ref.read(_autoNumberCounterProvider.notifier).state = counter + 1;
+  }
+
+  /// Add a label element at the next available position.
+  void _addAutoLabel(WidgetRef ref, String label) {
+    final canvasState = ref.read(canvasProvider);
+    final elements = canvasState.elements;
+
+    // Find a position that doesn't overlap existing elements
+    double x = 50.0;
+    double y = 50.0;
+    for (final el in elements) {
+      if (el is TextCanvasElement) {
+        if (el.position.dy + 40 > y) {
+          y = el.position.dy + 40;
+        }
+      }
+    }
+
+    ref.read(canvasProvider.notifier).addTextElement(
+      Offset(x, y),
+      label,
+      fontSize: 24,
+      isBold: true,
+    );
+    ref.read(lectureProvider.notifier).updateCurrentPageElements(
+      ref.read(canvasProvider).elements,
     );
   }
 }

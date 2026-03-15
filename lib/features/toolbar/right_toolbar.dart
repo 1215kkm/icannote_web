@@ -1,11 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
+import '../../providers/lecture_provider.dart';
 import '../../models/stroke.dart';
+import '../../models/canvas_element.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../canvas/widgets/color_picker.dart';
 import '../canvas/widgets/stroke_width_slider.dart';
+
+/// Provider for text options state
+final textOptionsProvider = StateNotifierProvider<TextOptionsNotifier, TextOptionsState>((ref) {
+  return TextOptionsNotifier();
+});
+
+class TextOptionsState {
+  final double fontSize;
+  final bool isBold;
+  final bool isItalic;
+  final bool showPanel;
+
+  const TextOptionsState({
+    this.fontSize = 16,
+    this.isBold = false,
+    this.isItalic = false,
+    this.showPanel = false,
+  });
+
+  TextOptionsState copyWith({
+    double? fontSize,
+    bool? isBold,
+    bool? isItalic,
+    bool? showPanel,
+  }) {
+    return TextOptionsState(
+      fontSize: fontSize ?? this.fontSize,
+      isBold: isBold ?? this.isBold,
+      isItalic: isItalic ?? this.isItalic,
+      showPanel: showPanel ?? this.showPanel,
+    );
+  }
+}
+
+class TextOptionsNotifier extends StateNotifier<TextOptionsState> {
+  TextOptionsNotifier() : super(const TextOptionsState());
+
+  void setFontSize(double size) => state = state.copyWith(fontSize: size.clamp(8, 72));
+  void toggleBold() => state = state.copyWith(isBold: !state.isBold);
+  void toggleItalic() => state = state.copyWith(isItalic: !state.isItalic);
+  void togglePanel() => state = state.copyWith(showPanel: !state.showPanel);
+  void hidePanel() => state = state.copyWith(showPanel: false);
+}
 
 class RightToolbar extends ConsumerWidget {
   final double width;
@@ -14,6 +59,7 @@ class RightToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canvasState = ref.watch(canvasProvider);
+    final textOptions = ref.watch(textOptionsProvider);
     // Scale tool sizes based on panel width
     final scale = (width / AppDimensions.rightToolbarWidth).clamp(1.0, 3.0);
     final toolSize = (AppDimensions.toolButtonSize * scale).clamp(24.0, 64.0);
@@ -217,14 +263,17 @@ class RightToolbar extends ConsumerWidget {
                   icon: Icons.text_fields,
                   tool: DrawingTool.none,
                   tooltip: 'Text Options',
-                  currentTool: DrawingTool.none,
-                  onTap: () {},
+                  currentTool: textOptions.showPanel ? DrawingTool.text : DrawingTool.none,
+                  onTap: () => ref.read(textOptionsProvider.notifier).togglePanel(),
                   size: toolSize,
                   iconSize: iconSize,
                   margin: toolMargin,
                 ),
               ],
             ),
+            // Text Options Panel
+            if (textOptions.showPanel)
+              _TextOptionsPanel(ref: ref, textOptions: textOptions),
             _divider(),
             // Pen & Highlighter
             _ToolGroup(
@@ -281,6 +330,176 @@ class RightToolbar extends ConsumerWidget {
         ),
         color: AppColors.toolbarDivider,
       );
+}
+
+/// Text Options Panel widget
+class _TextOptionsPanel extends StatelessWidget {
+  final WidgetRef ref;
+  final TextOptionsState textOptions;
+
+  const _TextOptionsPanel({required this.ref, required this.textOptions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        children: [
+          // Font size
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('Size', style: TextStyle(color: AppColors.toolbarIconDefault, fontSize: 11)),
+              const SizedBox(width: 4),
+              SizedBox(
+                width: 36,
+                height: 24,
+                child: TextField(
+                  controller: TextEditingController(text: textOptions.fontSize.toInt().toString()),
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  textAlign: TextAlign.center,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.toolbarDivider),
+                    ),
+                  ),
+                  onSubmitted: (value) {
+                    final size = double.tryParse(value);
+                    if (size != null) {
+                      ref.read(textOptionsProvider.notifier).setFontSize(size);
+                      _updateSelectedTextElement(ref);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Font size slider
+          SizedBox(
+            height: 20,
+            child: SliderTheme(
+              data: SliderThemeData(
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                activeTrackColor: AppColors.primary,
+                inactiveTrackColor: AppColors.toolbarDivider,
+                thumbColor: AppColors.primary,
+              ),
+              child: Slider(
+                value: textOptions.fontSize,
+                min: 8,
+                max: 72,
+                onChanged: (v) {
+                  ref.read(textOptionsProvider.notifier).setFontSize(v);
+                  _updateSelectedTextElement(ref);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Bold & Italic toggles
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ToggleButton(
+                label: 'B',
+                isActive: textOptions.isBold,
+                fontWeight: FontWeight.bold,
+                onTap: () {
+                  ref.read(textOptionsProvider.notifier).toggleBold();
+                  _updateSelectedTextElement(ref);
+                },
+              ),
+              const SizedBox(width: 4),
+              _ToggleButton(
+                label: 'I',
+                isActive: textOptions.isItalic,
+                fontStyle: FontStyle.italic,
+                onTap: () {
+                  ref.read(textOptionsProvider.notifier).toggleItalic();
+                  _updateSelectedTextElement(ref);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Update selected text element with current text options.
+  void _updateSelectedTextElement(WidgetRef ref) {
+    final canvasState = ref.read(canvasProvider);
+    final selectedEl = canvasState.selectedElement;
+    if (selectedEl is TextCanvasElement) {
+      final textOpts = ref.read(textOptionsProvider);
+      final updated = selectedEl.copyWith(
+        fontSize: textOpts.fontSize,
+        isBold: textOpts.isBold,
+        isItalic: textOpts.isItalic,
+      );
+      final elements = [...canvasState.elements];
+      final idx = elements.indexWhere((e) => e.id == selectedEl.id);
+      if (idx != -1) {
+        elements[idx] = updated;
+        ref.read(canvasProvider.notifier).loadElements(elements);
+        ref.read(lectureProvider.notifier).updateCurrentPageElements(elements);
+      }
+    }
+  }
+}
+
+/// Toggle button for bold/italic.
+class _ToggleButton extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final FontWeight? fontWeight;
+  final FontStyle? fontStyle;
+  final VoidCallback onTap;
+
+  const _ToggleButton({
+    required this.label,
+    required this.isActive,
+    this.fontWeight,
+    this.fontStyle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary.withValues(alpha: 0.3) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+          border: isActive ? Border.all(color: AppColors.primary, width: 1.5) : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : AppColors.toolbarIconDefault,
+            fontSize: 14,
+            fontWeight: fontWeight,
+            fontStyle: fontStyle,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ToolGroup extends StatelessWidget {

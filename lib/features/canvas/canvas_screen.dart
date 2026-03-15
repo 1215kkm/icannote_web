@@ -304,6 +304,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                               activeElement: canvasState.activeElement,
                               selectedElementId:
                                   canvasState.selectedElementId,
+                              backgroundPattern: _getBackgroundPattern(lectureState),
                             ),
                           ),
                         ),
@@ -366,6 +367,14 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
         ),
       ),
     );
+  }
+
+  String? _getBackgroundPattern(LectureState lectureState) {
+    final bgImage = lectureState.currentPage?.backgroundImageUrl;
+    if (bgImage != null && bgImage.startsWith('pattern:')) {
+      return bgImage.substring('pattern:'.length);
+    }
+    return null;
   }
 
   List<Widget> _buildImageOverlays(CanvasState canvasState) {
