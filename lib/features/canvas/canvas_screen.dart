@@ -94,14 +94,21 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
       return;
     }
 
-    // Check for sticker click to toggle (works with selection tool)
+    // Check for sticker click (selection tool)
     if (tool == DrawingTool.selection) {
       final elements = ref.read(canvasProvider).elements;
+      final selectedId = ref.read(canvasProvider).selectedElementId;
       for (int i = elements.length - 1; i >= 0; i--) {
         if (elements[i] is StickerElement &&
             elements[i].boundingBox.contains(pos)) {
           final sticker = elements[i] as StickerElement;
-          _toggleStickerWithAnimation(sticker);
+          if (selectedId == sticker.id) {
+            // Already selected - toggle reveal
+            _toggleStickerWithAnimation(sticker);
+          } else {
+            // First click - select the sticker (allow move/delete)
+            ref.read(canvasProvider.notifier).startStroke(pos);
+          }
           return;
         }
       }
@@ -281,7 +288,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Canvas layer
+                    // Layer 0: Background
                     Container(
                       decoration: BoxDecoration(
                         color: lectureState.currentPage?.backgroundColor ??
@@ -295,24 +302,25 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                           ),
                         ],
                       ),
-                      child: ClipRect(
-                        child: RepaintBoundary(
-                          child: CustomPaint(
-                            size: Size(pageWidth, pageHeight),
-                            painter: CanvasPainter(
-                              elements: canvasState.elements,
-                              activeElement: canvasState.activeElement,
-                              selectedElementId:
-                                  canvasState.selectedElementId,
-                              backgroundPattern: _getBackgroundPattern(lectureState),
-                            ),
+                    ),
+                    // Layer 1: Image overlays (BELOW drawings so strokes appear on top)
+                    ..._buildImageOverlays(canvasState),
+                    // Layer 2: Drawing canvas (strokes, shapes, text - ON TOP of images)
+                    ClipRect(
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          size: Size(pageWidth, pageHeight),
+                          painter: CanvasPainter(
+                            elements: canvasState.elements,
+                            activeElement: canvasState.activeElement,
+                            selectedElementId:
+                                canvasState.selectedElementId,
+                            backgroundPattern: _getBackgroundPattern(lectureState),
                           ),
                         ),
                       ),
                     ),
-                    // Image overlays (rendered as widgets for async loading)
-                    ..._buildImageOverlays(canvasState),
-                    // Sticker overlays (for animation)
+                    // Layer 3: Sticker overlays (for animation, on top of everything)
                     ..._buildStickerOverlays(canvasState),
                     // Sticker drag preview
                     if (_stickerDragRect != null)
@@ -414,12 +422,15 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
       }
 
       return Positioned(
+        key: ValueKey('img_${img.id}'),
         left: img.rect.left,
         top: img.rect.top,
         width: img.rect.width,
         height: img.rect.height,
         child: IgnorePointer(
-          child: imageWidget,
+          child: RepaintBoundary(
+            child: imageWidget,
+          ),
         ),
       );
     }).toList();

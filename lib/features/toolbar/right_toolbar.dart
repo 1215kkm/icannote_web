@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../models/stroke.dart';
 import '../../models/canvas_element.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../canvas/widgets/color_picker.dart';
 import '../canvas/widgets/stroke_width_slider.dart';
 
@@ -60,6 +62,8 @@ class RightToolbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canvasState = ref.watch(canvasProvider);
     final textOptions = ref.watch(textOptionsProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     // Scale tool sizes based on panel width
     final scale = (width / AppDimensions.rightToolbarWidth).clamp(1.0, 3.0);
     final toolSize = (AppDimensions.toolButtonSize * scale).clamp(24.0, 64.0);
@@ -80,7 +84,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.radio_button_unchecked,
                   tool: DrawingTool.laserPointer,
-                  tooltip: 'Laser Pointer',
+                  tooltip: l10n.laserPointer,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.laserPointer),
                   isHighlighted: true,
@@ -91,7 +95,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.gesture,
                   tool: DrawingTool.pen,
-                  tooltip: 'Free Draw',
+                  tooltip: l10n.freeDraw,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
                   size: toolSize,
@@ -106,7 +110,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.show_chart,
                   tool: DrawingTool.line,
-                  tooltip: 'Line',
+                  tooltip: l10n.line,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.line),
                   size: toolSize,
@@ -116,7 +120,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.timeline,
                   tool: DrawingTool.curve,
-                  tooltip: 'Curve',
+                  tooltip: l10n.curve,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.curve),
                   size: toolSize,
@@ -130,7 +134,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.crop_square,
                   tool: DrawingTool.rectangle,
-                  tooltip: 'Rectangle',
+                  tooltip: l10n.rectangle,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rectangle),
                   size: toolSize,
@@ -140,7 +144,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.circle_outlined,
                   tool: DrawingTool.circle,
-                  tooltip: 'Circle',
+                  tooltip: l10n.circle,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.circle),
                   size: toolSize,
@@ -154,7 +158,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.hexagon_outlined,
                   tool: DrawingTool.polygon,
-                  tooltip: 'Polygon',
+                  tooltip: l10n.polygon,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.polygon),
                   size: toolSize,
@@ -164,7 +168,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.change_history,
                   tool: DrawingTool.triangle,
-                  tooltip: 'Triangle',
+                  tooltip: l10n.triangle,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.triangle),
                   size: toolSize,
@@ -179,7 +183,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.note,
                   tool: DrawingTool.sticker,
-                  tooltip: 'Sticker',
+                  tooltip: l10n.sticker,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.sticker),
                   size: toolSize,
@@ -189,7 +193,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.auto_fix_high,
                   tool: DrawingTool.autoShape,
-                  tooltip: 'Auto Shape',
+                  tooltip: l10n.autoShape,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.autoShape),
                   size: toolSize,
@@ -203,7 +207,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.select_all,
                   tool: DrawingTool.selection,
-                  tooltip: 'Select',
+                  tooltip: l10n.select,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.selection),
                   size: toolSize,
@@ -213,7 +217,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.rotate_right,
                   tool: DrawingTool.rotation,
-                  tooltip: 'Rotate',
+                  tooltip: l10n.rotate,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.rotation),
                   size: toolSize,
@@ -227,7 +231,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.auto_fix_normal,
                   tool: DrawingTool.eraser,
-                  tooltip: 'Detail Eraser',
+                  tooltip: l10n.detailEraser,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.eraser),
                   size: toolSize,
@@ -237,7 +241,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.pan_tool,
                   tool: DrawingTool.pan,
-                  tooltip: 'Pan',
+                  tooltip: l10n.pan,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pan),
                   size: toolSize,
@@ -252,7 +256,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.title,
                   tool: DrawingTool.text,
-                  tooltip: 'Text',
+                  tooltip: l10n.text,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.text),
                   size: toolSize,
@@ -262,7 +266,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.text_fields,
                   tool: DrawingTool.none,
-                  tooltip: 'Text Options',
+                  tooltip: l10n.textOptions,
                   currentTool: textOptions.showPanel ? DrawingTool.text : DrawingTool.none,
                   onTap: () => ref.read(textOptionsProvider.notifier).togglePanel(),
                   size: toolSize,
@@ -281,7 +285,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.edit,
                   tool: DrawingTool.pen,
-                  tooltip: 'Pen',
+                  tooltip: l10n.pen,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.pen),
                   size: toolSize,
@@ -291,7 +295,7 @@ class RightToolbar extends ConsumerWidget {
                 _ToolButton(
                   icon: Icons.highlight,
                   tool: DrawingTool.highlighter,
-                  tooltip: 'Highlighter',
+                  tooltip: l10n.highlighter,
                   currentTool: canvasState.currentTool,
                   onTap: () => ref.read(canvasProvider.notifier).setTool(DrawingTool.highlighter),
                   size: toolSize,
@@ -354,7 +358,8 @@ class _TextOptionsPanel extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Size', style: TextStyle(color: AppColors.toolbarIconDefault, fontSize: 11)),
+              Text(ref.read(settingsProvider).language.code == 'ko' ? '크기' : 'Size',
+                style: const TextStyle(color: AppColors.toolbarIconDefault, fontSize: 11)),
               const SizedBox(width: 4),
               SizedBox(
                 width: 36,

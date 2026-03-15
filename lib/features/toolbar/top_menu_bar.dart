@@ -181,21 +181,21 @@ class TopMenuBar extends ConsumerWidget {
           offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry>[
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.image, size: 18),
-              SizedBox(width: 8),
-              Text('Insert Image'),
+              const Icon(Icons.image, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.insertImage),
             ],
           ),
           onTap: () => _insertImage(buttonContext, ref),
         ),
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.title, size: 18),
-              SizedBox(width: 8),
-              Text('Insert Text'),
+              const Icon(Icons.title, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.insertText),
             ],
           ),
           onTap: () {
@@ -203,11 +203,11 @@ class TopMenuBar extends ConsumerWidget {
           },
         ),
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.crop_square, size: 18),
-              SizedBox(width: 8),
-              Text('Insert Shape'),
+              const Icon(Icons.crop_square, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.insertShape),
             ],
           ),
           onTap: () {
@@ -215,11 +215,11 @@ class TopMenuBar extends ConsumerWidget {
           },
         ),
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.show_chart, size: 18),
-              SizedBox(width: 8),
-              Text('Insert Line'),
+              const Icon(Icons.show_chart, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.insertLine),
             ],
           ),
           onTap: () {
@@ -227,11 +227,11 @@ class TopMenuBar extends ConsumerWidget {
           },
         ),
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.note, size: 18),
-              SizedBox(width: 8),
-              Text('Insert Sticker'),
+              const Icon(Icons.note, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.insertSticker),
             ],
           ),
           onTap: () {
@@ -289,46 +289,46 @@ class TopMenuBar extends ConsumerWidget {
       position: RelativeRect.fromLTRB(
           offset.dx, offset.dy + size.height, offset.dx + 200, 0),
       items: <PopupMenuEntry>[
-        const PopupMenuItem(
+        PopupMenuItem(
           enabled: false,
-          child: Text('Background Color', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+          child: Text(l10n.backgroundColor, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
         ),
-        ..._backgroundColorItems(ref),
+        ..._backgroundColorItems(ref, l10n),
         const PopupMenuDivider(),
-        const PopupMenuItem(
+        PopupMenuItem(
           enabled: false,
-          child: Text('Background Pattern', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+          child: Text(l10n.backgroundPattern, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
         ),
         PopupMenuItem(
-          child: const Row(children: [Icon(Icons.grid_on, size: 18), SizedBox(width: 8), Text('Grid')]),
+          child: Row(children: [const Icon(Icons.grid_on, size: 18), const SizedBox(width: 8), Text(l10n.patternGrid)]),
           onTap: () => _setBackgroundPattern(buttonContext, ref, 'grid'),
         ),
         PopupMenuItem(
-          child: const Row(children: [Icon(Icons.horizontal_rule, size: 18), SizedBox(width: 8), Text('Ruled Lines')]),
+          child: Row(children: [const Icon(Icons.horizontal_rule, size: 18), const SizedBox(width: 8), Text(l10n.patternRuled)]),
           onTap: () => _setBackgroundPattern(buttonContext, ref, 'ruled'),
         ),
         PopupMenuItem(
-          child: const Row(children: [Icon(Icons.circle_outlined, size: 18), SizedBox(width: 8), Text('Dot Grid')]),
+          child: Row(children: [const Icon(Icons.circle_outlined, size: 18), const SizedBox(width: 8), Text(l10n.patternDots)]),
           onTap: () => _setBackgroundPattern(buttonContext, ref, 'dots'),
         ),
         PopupMenuItem(
-          child: const Row(children: [Icon(Icons.block, size: 18), SizedBox(width: 8), Text('None (Plain)')]),
+          child: Row(children: [const Icon(Icons.block, size: 18), const SizedBox(width: 8), Text(l10n.patternNone)]),
           onTap: () => _setBackgroundPattern(buttonContext, ref, 'none'),
         ),
       ],
     );
   }
 
-  List<PopupMenuItem> _backgroundColorItems(WidgetRef ref) {
+  List<PopupMenuItem> _backgroundColorItems(WidgetRef ref, AppLocalizations l10n) {
     final colors = [
-      (Colors.white, 'White'),
-      (const Color(0xFFFFF9C4), 'Light Yellow'),
-      (const Color(0xFFE8F5E9), 'Light Green'),
-      (const Color(0xFFE3F2FD), 'Light Blue'),
-      (const Color(0xFFF3E5F5), 'Light Purple'),
-      (const Color(0xFFFBE9E7), 'Light Coral'),
-      (const Color(0xFF263238), 'Dark'),
-      (Colors.black, 'Black'),
+      (Colors.white, l10n.bgWhite),
+      (const Color(0xFFFFF9C4), l10n.bgLightYellow),
+      (const Color(0xFFE8F5E9), l10n.bgLightGreen),
+      (const Color(0xFFE3F2FD), l10n.bgLightBlue),
+      (const Color(0xFFF3E5F5), l10n.bgLightPurple),
+      (const Color(0xFFFBE9E7), l10n.bgLightCoral),
+      (const Color(0xFF263238), l10n.bgDark),
+      (Colors.black, l10n.bgBlack),
     ];
     return colors.map((entry) {
       return PopupMenuItem(
@@ -408,7 +408,7 @@ class TopMenuBar extends ConsumerWidget {
       items: <PopupMenuEntry>[
         PopupMenuItem(
           child: Text(l10n.get('about')),
-          onTap: () => _showAboutDialog(buttonContext),
+          onTap: () => _showAboutDialog(buttonContext, ref),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
@@ -441,47 +441,60 @@ class TopMenuBar extends ConsumerWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context, WidgetRef ref) {
     Future.microtask(() {
       if (!context.mounted) return;
+      final lang = ref.read(settingsProvider).language.code;
+      final isKo = lang == 'ko';
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('About ICanNote'),
-          content: const Column(
+          title: Text(isKo ? 'ICanNote 정보' : 'About ICanNote'),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'ICanNote',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 8),
-              Text('Version 1.0.0'),
-              SizedBox(height: 16),
-              Text(
-                'A SaaS Whiteboard & Lecture Platform for interactive '
-                'teaching and collaborative learning.',
+              const SizedBox(height: 8),
+              Text('${isKo ? "버전" : "Version"} 1.0.0'),
+              const SizedBox(height: 16),
+              Text(isKo
+                ? '인터랙티브 교육 및 협업 학습을 위한 SaaS 화이트보드 & 강의 플랫폼.'
+                : 'A SaaS Whiteboard & Lecture Platform for interactive '
+                  'teaching and collaborative learning.',
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
-                'Features:\n'
-                '- Free drawing with pen, highlighter\n'
-                '- Shapes, lines, curves\n'
-                '- Text annotations\n'
-                '- Sticker covers for quizzes\n'
-                '- Real-time collaboration\n'
-                '- Recording & playback\n'
-                '- PDF/Image export\n'
-                '- Multi-page lectures',
-                style: TextStyle(fontSize: 13),
+                isKo
+                  ? '주요 기능:\n'
+                    '- 펜, 형광펜으로 자유 그리기\n'
+                    '- 도형, 선, 곡선\n'
+                    '- 텍스트 주석\n'
+                    '- 퀴즈용 스티커 커버\n'
+                    '- 실시간 협업\n'
+                    '- 녹화 및 재생\n'
+                    '- PDF/이미지 내보내기\n'
+                    '- 다중 페이지 강의'
+                  : 'Features:\n'
+                    '- Free drawing with pen, highlighter\n'
+                    '- Shapes, lines, curves\n'
+                    '- Text annotations\n'
+                    '- Sticker covers for quizzes\n'
+                    '- Real-time collaboration\n'
+                    '- Recording & playback\n'
+                    '- PDF/Image export\n'
+                    '- Multi-page lectures',
+                style: const TextStyle(fontSize: 13),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Close'),
+              child: Text(isKo ? '닫기' : 'Close'),
             ),
           ],
         ),
@@ -603,7 +616,7 @@ class TopMenuBar extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(saved ? 'Lecture saved.' : 'Save cancelled.'),
+            content: Text(saved ? AppLocalizations.of(ref.read(settingsProvider).language.code).lectureSaved : AppLocalizations.of(ref.read(settingsProvider).language.code).saveCancelled),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -634,7 +647,7 @@ class TopMenuBar extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(saved ? 'Lecture saved.' : 'Save cancelled.'),
+            content: Text(saved ? AppLocalizations.of(ref.read(settingsProvider).language.code).lectureSaved : AppLocalizations.of(ref.read(settingsProvider).language.code).saveCancelled),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -648,7 +661,7 @@ class TopMenuBar extends ConsumerWidget {
       if (lecture == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No lecture to export.')),
+            SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).noLectureToExport)),
           );
         }
         return;
@@ -664,7 +677,7 @@ class TopMenuBar extends ConsumerWidget {
       );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success ? 'PDF exported.' : 'PDF export cancelled.')),
+          SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).get(success ? 'pdf_exported' : 'pdf_export_cancelled'))),
         );
       }
     });
@@ -676,7 +689,7 @@ class TopMenuBar extends ConsumerWidget {
       if (lecture == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No lecture to export.')),
+            SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).noLectureToExport)),
           );
         }
         return;
@@ -692,7 +705,7 @@ class TopMenuBar extends ConsumerWidget {
       );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success ? 'Image exported.' : 'Image export cancelled.')),
+          SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).get(success ? 'image_exported' : 'image_export_cancelled'))),
         );
       }
     });
@@ -711,7 +724,7 @@ class TopMenuBar extends ConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open email client.')),
+            SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).get('could_not_open_email'))),
           );
         }
       }
@@ -724,7 +737,7 @@ class TopMenuBar extends ConsumerWidget {
       if (lecture == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No lecture to print.')),
+            SnackBar(content: Text(AppLocalizations.of(ref.read(settingsProvider).language.code).get('no_lecture_to_print'))),
           );
         }
         return;
@@ -772,17 +785,20 @@ class _SoundVideoDialogState extends State<_SoundVideoDialog> {
     super.dispose();
   }
 
+  AppLocalizations get _l10n => AppLocalizations.of(widget.ref.read(settingsProvider).language.code);
+
   @override
   Widget build(BuildContext context) {
+    final l10n = _l10n;
     return AlertDialog(
-      title: const Text('Insert Sound/Video'),
+      title: Text(l10n.insertSoundVideo),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'video', label: Text('Video'), icon: Icon(Icons.videocam)),
-              ButtonSegment(value: 'audio', label: Text('Audio'), icon: Icon(Icons.audiotrack)),
+            segments: [
+              ButtonSegment(value: 'video', label: Text(l10n.get('video')), icon: const Icon(Icons.videocam)),
+              ButtonSegment(value: 'audio', label: Text(l10n.get('audio')), icon: const Icon(Icons.audiotrack)),
             ],
             selected: {_mediaType},
             onSelectionChanged: (v) => setState(() => _mediaType = v.first),
@@ -791,29 +807,28 @@ class _SoundVideoDialogState extends State<_SoundVideoDialog> {
           TextField(
             controller: _urlController,
             decoration: InputDecoration(
-              labelText: _mediaType == 'video' ? 'Video URL (YouTube, etc.)' : 'Audio URL',
+              labelText: _mediaType == 'video' ? l10n.videoUrl : l10n.audioUrl,
               hintText: 'https://...',
               border: const OutlineInputBorder(),
               prefixIcon: Icon(_mediaType == 'video' ? Icons.video_library : Icons.music_note),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Paste a URL to embed media on the canvas.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          Text(
+            l10n.pasteUrlHint,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: () {
             final url = _urlController.text.trim();
             if (url.isEmpty) return;
-            // Add as a text element with a media marker
             final currentElements = widget.ref.read(canvasProvider).elements;
             double yOffset = 50.0;
             for (final el in currentElements) {
@@ -830,10 +845,10 @@ class _SoundVideoDialogState extends State<_SoundVideoDialog> {
             );
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${_mediaType == 'video' ? 'Video' : 'Audio'} link added to canvas.')),
+              SnackBar(content: Text(l10n.get(_mediaType == 'video' ? 'video_link_added' : 'audio_link_added'))),
             );
           },
-          child: const Text('Insert'),
+          child: Text(l10n.insert),
         ),
       ],
     );
@@ -861,30 +876,33 @@ class _PasswordProtectionDialogState extends State<_PasswordProtectionDialog> {
     super.dispose();
   }
 
+  AppLocalizations get _l10n => AppLocalizations.of(widget.ref.read(settingsProvider).language.code);
+
   @override
   Widget build(BuildContext context) {
+    final l10n = _l10n;
     return AlertDialog(
-      title: const Text('Save with Protection'),
+      title: Text(l10n.get('save_with_protection_title')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Set a password to protect this lecture file.'),
+          Text(l10n.get('set_password_hint')),
           const SizedBox(height: 16),
           TextField(
             controller: _passwordController,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Password',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.get('password'),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _confirmController,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Confirm Password',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.get('confirm_password'),
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -892,23 +910,22 @@ class _PasswordProtectionDialogState extends State<_PasswordProtectionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: () async {
             if (_passwordController.text != _confirmController.text) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Passwords do not match.')),
+                SnackBar(content: Text(l10n.get('passwords_not_match'))),
               );
               return;
             }
             if (_passwordController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Password cannot be empty.')),
+                SnackBar(content: Text(l10n.get('password_empty'))),
               );
               return;
             }
-            // Save with password marker in the lecture metadata
             final lecture = widget.ref.read(lectureProvider).lecture;
             if (lecture == null) return;
             widget.ref.read(lectureProvider.notifier).updateCurrentPageElements(
@@ -920,7 +937,7 @@ class _PasswordProtectionDialogState extends State<_PasswordProtectionDialog> {
             if (context.mounted) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Lecture saved with protection.')),
+                SnackBar(content: Text(l10n.get('saved_with_protection'))),
               );
             }
           },
@@ -973,11 +990,13 @@ class _LoginMenuBarItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     if (authState.isAuthenticated) {
       return Builder(
         builder: (buttonContext) => InkWell(
-          onTap: () => _showUserMenu(buttonContext, ref, authState),
+          onTap: () => _showUserMenu(buttonContext, ref, authState, l10n),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.menuItemPaddingH,
@@ -997,14 +1016,14 @@ class _LoginMenuBarItem extends ConsumerWidget {
     }
 
     return _MenuBarItem(
-      label: 'Login',
+      label: l10n.login,
       isHighlighted: true,
       onTapWithContext: (_) => context.go('/login'),
     );
   }
 
   void _showUserMenu(
-      BuildContext buttonContext, WidgetRef ref, AuthState authState) {
+      BuildContext buttonContext, WidgetRef ref, AuthState authState, AppLocalizations l10n) {
     final RenderBox button = buttonContext.findRenderObject() as RenderBox;
     final offset = button.localToGlobal(Offset.zero);
     final size = button.size;
@@ -1020,13 +1039,13 @@ class _LoginMenuBarItem extends ConsumerWidget {
         const PopupMenuDivider(),
         PopupMenuItem<String>(
           onTap: () => buttonContext.go('/dashboard'),
-          child: const Text('Dashboard'),
+          child: Text(l10n.dashboard),
         ),
         PopupMenuItem<String>(
           onTap: () {
             ref.read(authProvider.notifier).signOut();
           },
-          child: const Text('Sign Out'),
+          child: Text(l10n.signOut),
         ),
       ],
     );
@@ -1150,17 +1169,20 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
     });
   }
 
+  AppLocalizations get _l10n => AppLocalizations.of(widget.ref.read(settingsProvider).language.code);
+
   @override
   Widget build(BuildContext context) {
+    final l10n = _l10n;
     return AlertDialog(
-      title: const Text('New Lecture Settings'),
+      title: Text(l10n.newLectureSettings),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text('Page Width'),
+              Text(l10n.pageWidth),
               const SizedBox(width: AppDimensions.spacingLG),
               SizedBox(
                 width: AppDimensions.textFieldWidth,
@@ -1174,7 +1196,7 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
                 ),
               ),
               const SizedBox(width: AppDimensions.spacingXXL),
-              const Text('Page Height'),
+              Text(l10n.pageHeight),
               const SizedBox(width: AppDimensions.spacingLG),
               SizedBox(
                 width: AppDimensions.textFieldWidth,
@@ -1190,12 +1212,12 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
             ],
           ),
           const SizedBox(height: AppDimensions.spacingXL),
-          const Text('Orientation'),
+          Text(l10n.orientation),
           const SizedBox(height: AppDimensions.spacingMD),
           Row(
             children: [
               ChoiceChip(
-                label: const Text('Landscape'),
+                label: Text(l10n.landscape),
                 selected: _isLandscape,
                 onSelected: (_) {
                   if (!_isLandscape) _toggleOrientation();
@@ -1203,7 +1225,7 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
               ),
               const SizedBox(width: AppDimensions.spacingMD),
               ChoiceChip(
-                label: const Text('Portrait'),
+                label: Text(l10n.portrait),
                 selected: !_isLandscape,
                 onSelected: (_) {
                   if (_isLandscape) _toggleOrientation();
@@ -1213,7 +1235,9 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
           ),
           const SizedBox(height: AppDimensions.spacingLG),
           Text(
-            'Page size defaults to A4. When printing, the scale is adjusted to fit.',
+            l10n.languageCode == 'ko'
+              ? '페이지 크기는 A4 기본. 인쇄 시 스케일 자동 조정.'
+              : 'Page size defaults to A4. When printing, the scale is adjusted to fit.',
             style: TextStyle(
               fontSize: AppDimensions.fontSizeMD,
               color: AppColors.warningText,
@@ -1234,18 +1258,18 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
                 );
             Navigator.pop(context);
           },
-          child: const Text('Apply'),
+          child: Text(l10n.apply),
         ),
         TextButton(
           onPressed: () {
             widget.ref.read(lectureProvider.notifier).createNewLecture();
             Navigator.pop(context);
           },
-          child: const Text('Use Defaults'),
+          child: Text(l10n.useDefaults),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
       ],
     );

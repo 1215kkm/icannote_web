@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../models/canvas_element.dart';
 import '../../services/canvas_export_service.dart';
 import '../library/library_panel.dart';
@@ -20,6 +22,8 @@ class BottomToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lectureState = ref.watch(lectureProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     final pageCount = lectureState.lecture?.pages.length ?? 0;
     final currentPage = lectureState.currentPageIndex + 1;
 
@@ -39,7 +43,7 @@ class BottomToolbar extends ConsumerWidget {
                       size: AppDimensions.iconSizeMD),
                   onPressed: () =>
                       ref.read(lectureProvider.notifier).addPage(),
-                  tooltip: 'Add Page',
+                  tooltip: l10n.addPage,
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
@@ -48,7 +52,7 @@ class BottomToolbar extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '$currentPage / $pageCount Page',
+                  '$currentPage / $pageCount ${l10n.get('page_info')}',
                   style: const TextStyle(
                     color: AppColors.toolbarIconDefault,
                     fontSize: AppDimensions.fontSizeSM,
@@ -60,7 +64,7 @@ class BottomToolbar extends ConsumerWidget {
                   onPressed: () => ref
                       .read(lectureProvider.notifier)
                       .deletePage(lectureState.currentPageIndex),
-                  tooltip: 'Delete Page',
+                  tooltip: l10n.deletePage,
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
@@ -77,17 +81,17 @@ class BottomToolbar extends ConsumerWidget {
           // Toolbar actions
           _BottomAction(
             icon: Icons.flip,
-            tooltip: 'Invert Colors',
+            tooltip: l10n.invertColors,
             onTap: () => _invertColors(ref),
           ),
           _BottomAction(
             icon: Icons.arrow_upward,
-            tooltip: 'Bring Forward',
+            tooltip: l10n.bringForward,
             onTap: () => ref.read(canvasProvider.notifier).bringForward(),
           ),
           _BottomAction(
             icon: Icons.arrow_downward,
-            tooltip: 'Send Backward',
+            tooltip: l10n.sendBackward,
             onTap: () => ref.read(canvasProvider.notifier).sendBackward(),
           ),
           const VerticalDivider(
@@ -95,12 +99,12 @@ class BottomToolbar extends ConsumerWidget {
               color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.undo,
-            tooltip: 'Undo',
+            tooltip: l10n.undo,
             onTap: () => ref.read(canvasProvider.notifier).undo(),
           ),
           _BottomAction(
             icon: Icons.redo,
-            tooltip: 'Redo',
+            tooltip: l10n.redo,
             onTap: () => ref.read(canvasProvider.notifier).redo(),
           ),
           const VerticalDivider(
@@ -108,22 +112,22 @@ class BottomToolbar extends ConsumerWidget {
               color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.copy,
-            tooltip: 'Copy',
+            tooltip: l10n.copy,
             onTap: () => ref.read(canvasProvider.notifier).copySelected(),
           ),
           _BottomAction(
             icon: Icons.paste,
-            tooltip: 'Paste',
+            tooltip: l10n.paste,
             onTap: () => ref.read(canvasProvider.notifier).paste(),
           ),
           _BottomAction(
             icon: Icons.select_all,
-            tooltip: 'Select All',
+            tooltip: l10n.selectAll,
             onTap: () => ref.read(canvasProvider.notifier).selectAll(),
           ),
           _BottomAction(
             icon: Icons.clear_all,
-            tooltip: 'Clear All',
+            tooltip: l10n.clearAll,
             onTap: () => ref.read(canvasProvider.notifier).clearAll(),
           ),
           const VerticalDivider(
@@ -131,18 +135,18 @@ class BottomToolbar extends ConsumerWidget {
               color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.library_books,
-            tooltip: 'Library',
+            tooltip: l10n.get('library') == 'library' ? 'Library' : l10n.get('library'),
             onTap: () => ref.read(libraryProvider.notifier).toggle(),
           ),
           _BottomAction(
             icon: Icons.show_chart,
-            tooltip: 'Graph',
+            tooltip: l10n.get('graph') == 'graph' ? 'Graph' : l10n.get('graph'),
             onTap: () => ref.read(graphProvider.notifier).toggle(),
           ),
           const RecordButton(),
           _BottomAction(
             icon: Icons.screenshot,
-            tooltip: 'Screen Capture',
+            tooltip: l10n.screenCapture,
             onTap: () => _screenCapture(context, ref),
           ),
           const VerticalDivider(
@@ -150,19 +154,19 @@ class BottomToolbar extends ConsumerWidget {
               color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.abc,
-            tooltip: 'Auto Alphabet',
+            tooltip: l10n.autoAlphabet,
             onTap: () => _autoAlphabet(ref),
           ),
           _BottomAction(
             icon: Icons.onetwothree,
-            tooltip: 'Auto Number',
+            tooltip: l10n.autoNumber,
             onTap: () => _autoNumber(ref),
           ),
           const Spacer(),
           // Zoom controls
           _BottomAction(
             icon: Icons.zoom_in,
-            tooltip: 'Zoom In',
+            tooltip: l10n.zoomIn,
             onTap: () {
               final current = ref.read(canvasProvider).zoom;
               ref.read(canvasProvider.notifier).setZoom(current + 0.1);
@@ -170,7 +174,7 @@ class BottomToolbar extends ConsumerWidget {
           ),
           _BottomAction(
             icon: Icons.zoom_out,
-            tooltip: 'Zoom Out',
+            tooltip: l10n.zoomOut,
             onTap: () {
               final current = ref.read(canvasProvider).zoom;
               ref.read(canvasProvider.notifier).setZoom(current - 0.1);
