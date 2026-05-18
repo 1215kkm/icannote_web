@@ -21,13 +21,16 @@ class PageData {
   PageData copyWith({
     Color? backgroundColor,
     String? backgroundImageUrl,
+    bool clearBackgroundImage = false,
     List<CanvasElement>? elements,
     int? order,
   }) {
     return PageData(
       id: id,
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      backgroundImageUrl: backgroundImageUrl ?? this.backgroundImageUrl,
+      backgroundImageUrl: clearBackgroundImage
+          ? null
+          : (backgroundImageUrl ?? this.backgroundImageUrl),
       elements: elements ?? this.elements,
       order: order ?? this.order,
     );
@@ -48,15 +51,24 @@ class PageData {
 
   factory PageData.fromJson(Map<String, dynamic> json) {
     final bg = json['background'] as Map<String, dynamic>? ?? {};
+    final rawColor = bg['color'];
+    // Parse elements one by one so a single corrupt/foreign element
+    // is skipped instead of aborting the entire file open.
+    final elements = <CanvasElement>[];
+    for (final e in (json['elements'] as List?) ?? const []) {
+      if (e is! Map) continue;
+      try {
+        elements.add(CanvasElement.fromJson(Map<String, dynamic>.from(e)));
+      } catch (err) {
+        debugPrint('Skipping unreadable canvas element: $err');
+      }
+    }
     return PageData(
-      id: json['id'] as String,
-      backgroundColor: Color(bg['color'] as int? ?? 0xFFFFFFFF),
+      id: json['id'] as String?,
+      backgroundColor:
+          Color(rawColor is num ? rawColor.toInt() : 0xFFFFFFFF),
       backgroundImageUrl: bg['image'] as String?,
-      elements: (json['elements'] as List?)
-              ?.map((e) =>
-                  CanvasElement.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      elements: elements,
       order: json['order'] as int? ?? 0,
     );
   }

@@ -337,11 +337,48 @@ class RightToolbar extends ConsumerWidget {
 }
 
 /// Text Options Panel widget
-class _TextOptionsPanel extends StatelessWidget {
+class _TextOptionsPanel extends StatefulWidget {
   final WidgetRef ref;
   final TextOptionsState textOptions;
 
   const _TextOptionsPanel({required this.ref, required this.textOptions});
+
+  @override
+  State<_TextOptionsPanel> createState() => _TextOptionsPanelState();
+}
+
+class _TextOptionsPanelState extends State<_TextOptionsPanel> {
+  late final TextEditingController _fontSizeController;
+  final FocusNode _fontSizeFocus = FocusNode();
+
+  WidgetRef get ref => widget.ref;
+  TextOptionsState get textOptions => widget.textOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _fontSizeController = TextEditingController(
+      text: widget.textOptions.fontSize.toInt().toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _TextOptionsPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync the field when the size changes elsewhere (e.g. slider),
+    // but never clobber what the user is actively typing.
+    final newText = widget.textOptions.fontSize.toInt().toString();
+    if (!_fontSizeFocus.hasFocus && _fontSizeController.text != newText) {
+      _fontSizeController.text = newText;
+    }
+  }
+
+  @override
+  void dispose() {
+    _fontSizeController.dispose();
+    _fontSizeFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +402,8 @@ class _TextOptionsPanel extends StatelessWidget {
                 width: 36,
                 height: 24,
                 child: TextField(
-                  controller: TextEditingController(text: textOptions.fontSize.toInt().toString()),
+                  controller: _fontSizeController,
+                  focusNode: _fontSizeFocus,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                   textAlign: TextAlign.center,
@@ -453,13 +491,14 @@ class _TextOptionsPanel extends StatelessWidget {
         isBold: textOpts.isBold,
         isItalic: textOpts.isItalic,
       );
-      final elements = [...canvasState.elements];
-      final idx = elements.indexWhere((e) => e.id == selectedEl.id);
-      if (idx != -1) {
-        elements[idx] = updated;
-        ref.read(canvasProvider.notifier).loadElements(elements);
-        ref.read(lectureProvider.notifier).updateCurrentPageElements(elements);
-      }
+      // Undoable in-place modify (keeps undo/redo history intact and
+      // triggers a canvas repaint).
+      ref
+          .read(canvasProvider.notifier)
+          .modifyElementById(selectedEl.id, updated);
+      ref
+          .read(lectureProvider.notifier)
+          .updateCurrentPageElements(ref.read(canvasProvider).elements);
     }
   }
 }

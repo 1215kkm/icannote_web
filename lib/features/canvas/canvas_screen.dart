@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +13,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_dimensions.dart';
 import 'canvas_painter.dart';
 import 'graph_overlay.dart';
+import 'laser_pointer_overlay.dart';
 import '../collaboration/cursor_overlay.dart';
 
 class CanvasScreen extends ConsumerStatefulWidget {
@@ -41,6 +41,9 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
 
   // Sticker animation controllers (id -> controller)
   final Map<String, AnimationController> _stickerAnimControllers = {};
+
+  // Laser pointer overlay handle
+  final GlobalKey<LaserPointerOverlayState> _laserKey = GlobalKey();
 
   @override
   void initState() {
@@ -79,6 +82,11 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
     // Check canDraw permission for collaboration
     final syncState = ref.read(syncProvider);
     if (syncState.isConnected && !syncState.canDraw) return;
+
+    if (tool == DrawingTool.laserPointer) {
+      _laserKey.currentState?.addPoint(pos);
+      return;
+    }
 
     if (tool == DrawingTool.text) {
       _showTextInputAt(pos);
@@ -121,6 +129,13 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
     final pos = _toCanvasPosition(event.position);
 
     final tool = ref.read(canvasProvider).currentTool;
+
+    if (tool == DrawingTool.laserPointer) {
+      _laserKey.currentState?.addPoint(pos);
+      ref.read(syncProvider.notifier).sendCursorPosition(pos.dx, pos.dy);
+      return;
+    }
+
     if (tool == DrawingTool.sticker && _stickerDragStart != null) {
       setState(() {
         _stickerDragRect = Rect.fromPoints(_stickerDragStart!, pos);
@@ -345,6 +360,16 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
                           ),
                         ),
                       ),
+                    // Laser pointer overlay (fading trail)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: LaserPointerOverlay(
+                          key: _laserKey,
+                          isActive: canvasState.currentTool ==
+                              DrawingTool.laserPointer,
+                        ),
+                      ),
+                    ),
                     // Graph overlay
                     const GraphOverlay(),
                     // Remote cursor overlay
@@ -396,13 +421,12 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
       if (img.imageUrl.startsWith('data:')) {
         // Base64 data URL
         try {
-          final dataUri = Uri.parse(img.imageUrl);
           final base64Str = img.imageUrl.split(',').last;
           final bytes = base64Decode(base64Str);
           imageWidget = Image.memory(
             Uint8List.fromList(bytes),
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Center(
+            errorBuilder: (_, _, _) => const Center(
               child: Icon(Icons.broken_image, color: Colors.grey),
             ),
           );
@@ -415,7 +439,7 @@ class _CanvasScreenState extends ConsumerState<CanvasScreen>
         imageWidget = Image.network(
           img.imageUrl,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Center(
+          errorBuilder: (_, _, _) => const Center(
             child: Icon(Icons.broken_image, color: Colors.grey),
           ),
         );

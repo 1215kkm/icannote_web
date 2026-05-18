@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,22 +37,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _handleResetPassword() {
+    final l10n = AppLocalizations.of(
+        ref.read(settingsProvider).language.code);
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter your email first.')),
+        SnackBar(content: Text(l10n.get('enter_email_first'))),
       );
       return;
     }
     ref.read(authProvider.notifier).resetPassword(email);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset email sent.')),
+      SnackBar(content: Text(l10n.get('password_reset_email_sent'))),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     // Show error snackbar
     ref.listen<AuthState>(authProvider, (prev, next) {
@@ -105,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: AppDimensions.spacingMD),
                   Text(
-                    'Sign in to your account',
+                    l10n.get('sign_in_to_account'),
                     style: TextStyle(
                       fontSize: AppDimensions.fontSizeMD,
                       color: Colors.grey.shade600,
@@ -117,17 +123,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.get('email'),
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
+                        return l10n.get('please_enter_email');
                       }
                       if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                        return l10n.get('please_enter_valid_email');
                       }
                       return null;
                     },
@@ -139,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l10n.get('password'),
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -155,7 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return l10n.get('please_enter_password');
                       }
                       return null;
                     },
@@ -168,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _handleResetPassword,
-                      child: const Text('Forgot Password?'),
+                      child: Text(l10n.get('forgot_password')),
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingXL),
@@ -196,9 +202,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Sign In',
-                              style: TextStyle(
+                          : Text(
+                              l10n.get('sign_in'),
+                              style: const TextStyle(
                                   fontSize: AppDimensions.fontSizeLG),
                             ),
                     ),
@@ -210,12 +216,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        l10n.get('no_account_question'),
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                       TextButton(
                         onPressed: () => context.go('/register'),
-                        child: const Text('Create Account'),
+                        child: Text(l10n.get('create_account')),
                       ),
                     ],
                   ),
@@ -224,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextButton(
                     onPressed: () => context.go('/'),
                     child: Text(
-                      'Continue as Guest',
+                      l10n.get('continue_as_guest'),
                       style: TextStyle(color: Colors.grey.shade500),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/room_model.dart';
 import '../models/canvas_element.dart';
+import '../core/firebase_status.dart';
 import '../services/sync/sync_service.dart';
 import '../services/sync/firebase_sync_service.dart';
 import 'auth_provider.dart';
@@ -78,6 +79,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Create a new collaboration room.
   Future<String?> createRoom(String title) async {
+    if (!isFirebaseReady) return null;
     final userId = _currentUserId;
     final userName = _currentUserName;
     if (userId == null) return null;
@@ -115,6 +117,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Join an existing room by invite code.
   Future<bool> joinRoom(String inviteCode) async {
+    if (!isFirebaseReady) return false;
     final userId = _currentUserId;
     final userName = _currentUserName;
     if (userId == null) return false;

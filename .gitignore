@@ -52,3 +52,9 @@ go_backend/tmp/
 .env
 .env.local
 *.env
+
+# Claude Code local settings
+.claude/
+
+# Local verification scratch artifacts
+tool/_verify/

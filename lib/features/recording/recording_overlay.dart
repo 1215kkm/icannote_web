@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/recording_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Floating recording/playback controls overlay on the canvas.
 class RecordingOverlay extends ConsumerWidget {
@@ -11,6 +13,8 @@ class RecordingOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recState = ref.watch(recordingProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     if (recState.isIdle && !recState.hasRecording) {
       return const SizedBox.shrink();
@@ -52,7 +56,7 @@ class RecordingOverlay extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppDimensions.spacingMD),
                 Text(
-                  'REC ${recState.currentTimeDisplay}',
+                  '${l10n.get('rec_prefix')} ${recState.currentTimeDisplay}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: AppDimensions.fontSizeMD,
@@ -63,7 +67,7 @@ class RecordingOverlay extends ConsumerWidget {
                 _ControlButton(
                   icon: Icons.stop,
                   color: Colors.red,
-                  tooltip: 'Stop Recording',
+                  tooltip: l10n.get('stop_recording'),
                   onTap: () =>
                       ref.read(recordingProvider.notifier).stopRecording(),
                 ),
@@ -86,7 +90,9 @@ class RecordingOverlay extends ConsumerWidget {
                 // Play/Pause
                 _ControlButton(
                   icon: recState.isPlaying ? Icons.pause : Icons.play_arrow,
-                  tooltip: recState.isPlaying ? 'Pause' : 'Play',
+                  tooltip: recState.isPlaying
+                      ? l10n.get('pause')
+                      : l10n.get('play'),
                   onTap: () {
                     if (recState.isPlaying) {
                       ref.read(recordingProvider.notifier).pause();
@@ -99,7 +105,7 @@ class RecordingOverlay extends ConsumerWidget {
                 // Stop
                 _ControlButton(
                   icon: Icons.stop,
-                  tooltip: 'Stop',
+                  tooltip: l10n.get('stop'),
                   onTap: () => ref.read(recordingProvider.notifier).stop(),
                 ),
 
@@ -171,8 +177,10 @@ class _SpeedButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     return PopupMenuButton<double>(
-      tooltip: 'Playback Speed',
+      tooltip: l10n.get('playback_speed'),
       onSelected: (speed) =>
           ref.read(recordingProvider.notifier).setPlaybackSpeed(speed),
       itemBuilder: (_) => [
@@ -222,6 +230,8 @@ class RecordButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recState = ref.watch(recordingProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return IconButton(
       icon: Icon(
@@ -229,7 +239,9 @@ class RecordButton extends ConsumerWidget {
         color: recState.isRecording ? Colors.red : AppColors.toolbarIconDefault,
         size: AppDimensions.iconSizeMD,
       ),
-      tooltip: recState.isRecording ? 'Stop Recording' : 'Record',
+      tooltip: recState.isRecording
+          ? l10n.get('stop_recording')
+          : l10n.get('record'),
       onPressed: () {
         if (recState.isRecording) {
           ref.read(recordingProvider.notifier).stopRecording();

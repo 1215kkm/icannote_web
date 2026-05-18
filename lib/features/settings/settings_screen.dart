@@ -5,6 +5,7 @@ import '../../providers/settings_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Settings screen with all app configuration options.
 class SettingsScreen extends ConsumerWidget {
@@ -14,10 +15,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final subState = ref.watch(subscriptionProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.get('settings')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/dashboard'),
@@ -27,10 +29,10 @@ class SettingsScreen extends ConsumerWidget {
             onPressed: () {
               ref.read(settingsProvider.notifier).resetAll();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults.')),
+                SnackBar(content: Text(l10n.get('settings_reset'))),
               );
             },
-            child: const Text('Reset All'),
+            child: Text(l10n.get('reset_all')),
           ),
         ],
       ),
@@ -43,25 +45,26 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Theme section
-                _SectionHeader(title: 'Appearance', icon: Icons.palette),
+                _SectionHeader(
+                    title: l10n.get('appearance'), icon: Icons.palette),
                 _SettingsCard(
                   children: [
                     _DropdownSetting<AppThemeMode>(
-                      title: 'Theme',
-                      subtitle: 'Choose light or dark mode',
+                      title: l10n.get('theme'),
+                      subtitle: l10n.get('theme_subtitle'),
                       value: settings.themeMode,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: AppThemeMode.light,
-                          child: Text('Light'),
+                          child: Text(l10n.get('theme_light')),
                         ),
                         DropdownMenuItem(
                           value: AppThemeMode.dark,
-                          child: Text('Dark'),
+                          child: Text(l10n.get('theme_dark')),
                         ),
                         DropdownMenuItem(
                           value: AppThemeMode.system,
-                          child: Text('System'),
+                          child: Text(l10n.get('theme_system')),
                         ),
                       ],
                       onChanged: (v) =>
@@ -69,15 +72,18 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     _DropdownSetting<String>(
-                      title: 'Cursor Style',
-                      subtitle: 'Canvas cursor appearance',
+                      title: l10n.get('cursor_style'),
+                      subtitle: l10n.get('cursor_style_subtitle'),
                       value: settings.cursorStyle,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 'default', child: Text('Default')),
+                            value: 'default',
+                            child: Text(l10n.get('cursor_default'))),
                         DropdownMenuItem(
-                            value: 'crosshair', child: Text('Crosshair')),
-                        DropdownMenuItem(value: 'dot', child: Text('Dot')),
+                            value: 'crosshair',
+                            child: Text(l10n.get('cursor_crosshair'))),
+                        DropdownMenuItem(
+                            value: 'dot', child: Text(l10n.get('cursor_dot'))),
                       ],
                       onChanged: (v) => ref
                           .read(settingsProvider.notifier)
@@ -85,8 +91,8 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     _SwitchSetting(
-                      title: 'Show Toolbar Labels',
-                      subtitle: 'Display text labels on toolbar buttons',
+                      title: l10n.get('show_toolbar_labels'),
+                      subtitle: l10n.get('show_toolbar_labels_subtitle'),
                       value: settings.showToolbarLabels,
                       onChanged: (v) => ref
                           .read(settingsProvider.notifier)
@@ -98,12 +104,13 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: AppDimensions.spacingXXL),
 
                 // Language section
-                _SectionHeader(title: 'Language', icon: Icons.language),
+                _SectionHeader(
+                    title: l10n.get('language'), icon: Icons.language),
                 _SettingsCard(
                   children: [
                     _DropdownSetting<AppLanguage>(
-                      title: 'Language',
-                      subtitle: 'App display language',
+                      title: l10n.get('language'),
+                      subtitle: l10n.get('language_subtitle'),
                       value: settings.language,
                       items: AppLanguage.values
                           .map((l) => DropdownMenuItem(
@@ -121,12 +128,12 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: AppDimensions.spacingXXL),
 
                 // Auto-save section
-                _SectionHeader(title: 'Save', icon: Icons.save),
+                _SectionHeader(title: l10n.get('save'), icon: Icons.save),
                 _SettingsCard(
                   children: [
                     _SwitchSetting(
-                      title: 'Auto-Save',
-                      subtitle: 'Automatically save lecture periodically',
+                      title: l10n.get('auto_save'),
+                      subtitle: l10n.get('auto_save_subtitle'),
                       value: settings.autoSaveEnabled,
                       onChanged: (v) =>
                           ref.read(settingsProvider.notifier).setAutoSave(v),
@@ -134,9 +141,9 @@ class SettingsScreen extends ConsumerWidget {
                     if (settings.autoSaveEnabled) ...[
                       const Divider(height: 1),
                       _SliderSetting(
-                        title: 'Auto-Save Interval',
+                        title: l10n.get('auto_save_interval'),
                         subtitle:
-                            'Save every ${settings.autoSaveIntervalSeconds} seconds',
+                            '${l10n.get('auto_save_interval_subtitle_prefix')} ${settings.autoSaveIntervalSeconds} ${l10n.get('auto_save_interval_subtitle_suffix')}',
                         value: settings.autoSaveIntervalSeconds.toDouble(),
                         min: 10,
                         max: 120,
@@ -153,7 +160,8 @@ class SettingsScreen extends ConsumerWidget {
 
                 // Keyboard shortcuts section
                 _SectionHeader(
-                    title: 'Keyboard Shortcuts', icon: Icons.keyboard),
+                    title: l10n.get('keyboard_shortcuts'),
+                    icon: Icons.keyboard),
                 _SettingsCard(
                   children: [
                     ...settings.shortcuts.asMap().entries.map((entry) {
@@ -173,7 +181,7 @@ class SettingsScreen extends ConsumerWidget {
                         onPressed: () =>
                             ref.read(settingsProvider.notifier).resetShortcuts(),
                         icon: const Icon(Icons.restore, size: 16),
-                        label: const Text('Reset to Defaults'),
+                        label: Text(l10n.get('reset_to_defaults')),
                       ),
                     ),
                   ],
@@ -183,11 +191,12 @@ class SettingsScreen extends ConsumerWidget {
 
                 // Subscription section
                 _SectionHeader(
-                    title: 'Subscription', icon: Icons.card_membership),
+                    title: l10n.get('subscription'),
+                    icon: Icons.card_membership),
                 _SettingsCard(
                   children: [
                     ListTile(
-                      title: const Text('Current Plan'),
+                      title: Text(l10n.get('current_plan')),
                       subtitle: Text(
                         subState.currentPlan.name.toUpperCase(),
                         style: TextStyle(
@@ -200,8 +209,8 @@ class SettingsScreen extends ConsumerWidget {
                       trailing: ElevatedButton(
                         onPressed: () => context.go('/subscription'),
                         child: Text(subState.isActive
-                            ? 'Manage'
-                            : 'Upgrade'),
+                            ? l10n.get('manage')
+                            : l10n.get('upgrade')),
                       ),
                     ),
                   ],
@@ -212,7 +221,7 @@ class SettingsScreen extends ConsumerWidget {
                 // App info
                 Center(
                   child: Text(
-                    'ICanNote v1.0.0',
+                    l10n.get('app_version'),
                     style: TextStyle(
                       fontSize: AppDimensions.fontSizeSM,
                       color: Colors.grey.shade500,

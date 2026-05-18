@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'page_data.dart';
 import '../core/constants/app_constants.dart';
@@ -65,6 +66,26 @@ class Lecture {
   factory Lecture.fromIcn(Map<String, dynamic> json) {
     final metadata = json['metadata'] as Map<String, dynamic>? ?? {};
     final settings = json['settings'] as Map<String, dynamic>? ?? {};
+
+    // Parse pages defensively: skip any unreadable page rather than
+    // failing the whole open.
+    final pages = <PageData>[];
+    for (final p in (json['pages'] as List?) ?? const []) {
+      if (p is! Map) continue;
+      try {
+        pages.add(PageData.fromJson(Map<String, dynamic>.from(p)));
+      } catch (err) {
+        debugPrint('Skipping unreadable page: $err');
+      }
+    }
+
+    DateTime parseDate(dynamic v) {
+      if (v is String) {
+        return DateTime.tryParse(v) ?? DateTime.now();
+      }
+      return DateTime.now();
+    }
+
     return Lecture(
       id: metadata['id'] as String? ?? const Uuid().v4(),
       title: metadata['title'] as String? ?? 'Untitled',
@@ -72,17 +93,10 @@ class Lecture {
           AppConstants.defaultPageWidth,
       pageHeight: (settings['pageHeight'] as num?)?.toDouble() ??
           AppConstants.defaultPageHeight,
-      pages: (json['pages'] as List?)
-              ?.map((p) => PageData.fromJson(p as Map<String, dynamic>))
-              .toList() ??
-          [PageData(order: 0)],
+      pages: pages.isNotEmpty ? pages : [PageData(order: 0)],
       ownerId: metadata['author'] as String?,
-      createdAt: metadata['created'] != null
-          ? DateTime.parse(metadata['created'] as String)
-          : DateTime.now(),
-      updatedAt: metadata['modified'] != null
-          ? DateTime.parse(metadata['modified'] as String)
-          : DateTime.now(),
+      createdAt: parseDate(metadata['created']),
+      updatedAt: parseDate(metadata['modified']),
     );
   }
 }

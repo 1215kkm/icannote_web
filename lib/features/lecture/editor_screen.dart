@@ -97,9 +97,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         ResizablePanel(
                           initialWidth: AppConstants.defaultLeftPanelWidth,
                           isLeft: true,
-                          child: PagesPanel(
-                            width: AppConstants.defaultLeftPanelWidth,
-                          ),
+                          builder: (w) => PagesPanel(width: w),
                         ),
                         // Canvas area (center)
                         const Expanded(

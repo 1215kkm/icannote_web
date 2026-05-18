@@ -1,5 +1,4 @@
 import 'dart:ui' as ui;
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -9,7 +8,6 @@ import 'package:printing/printing.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/canvas_element.dart';
 import '../models/lecture.dart';
-import '../models/page_data.dart';
 
 /// Service for exporting canvas content as PDF, Image, and printing.
 class CanvasExportService {

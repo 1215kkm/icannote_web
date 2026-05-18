@@ -6,6 +6,13 @@ import 'package:flutter/foundation.dart';
 /// Run `flutterfire configure` to generate real options, or
 /// manually set values from Firebase Console → Project Settings.
 class DefaultFirebaseOptions {
+  /// True while the bundled config is still the placeholder template.
+  /// When true, the app must NOT attempt to initialize Firebase or call
+  /// any cloud service — it runs fully offline (local whiteboard only).
+  static bool get isPlaceholder =>
+      web.apiKey == 'YOUR_WEB_API_KEY' ||
+      web.projectId == 'icannote-placeholder';
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;

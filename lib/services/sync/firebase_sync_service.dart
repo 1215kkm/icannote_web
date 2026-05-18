@@ -16,7 +16,12 @@ import 'sync_service.dart';
 ///   participants/{userId} → Participant JSON
 /// ```
 class FirebaseSyncService implements SyncService {
-  final DatabaseReference _db = FirebaseDatabase.instance.ref();
+  // Lazy: resolving FirebaseDatabase.instance eagerly in a field
+  // initializer would throw when Firebase isn't initialized, crashing
+  // any screen that merely constructs this service. Callers must only
+  // invoke methods when isFirebaseReady is true.
+  DatabaseReference? _dbRef;
+  DatabaseReference get _db => _dbRef ??= FirebaseDatabase.instance.ref();
 
   DatabaseReference _roomRef(String roomId) => _db.child('rooms/$roomId');
 

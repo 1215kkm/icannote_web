@@ -3,7 +3,11 @@ import '../core/constants/app_constants.dart';
 import '../core/constants/app_dimensions.dart';
 
 class ResizablePanel extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
+
+  /// Optional builder that receives the live (resized) width so the
+  /// child can lay itself out for the current panel width.
+  final Widget Function(double width)? builder;
   final double initialWidth;
   final double minWidth;
   final double maxWidth;
@@ -11,12 +15,14 @@ class ResizablePanel extends StatefulWidget {
 
   const ResizablePanel({
     super.key,
-    required this.child,
+    this.child,
+    this.builder,
     required this.initialWidth,
     this.minWidth = AppConstants.minPanelWidth,
     this.maxWidth = AppConstants.maxPanelWidth,
     this.isLeft = true,
-  });
+  }) : assert(child != null || builder != null,
+            'Provide either child or builder');
 
   @override
   State<ResizablePanel> createState() => _ResizablePanelState();
@@ -39,7 +45,9 @@ class _ResizablePanelState extends State<ResizablePanel> {
         if (!widget.isLeft) _buildHandle(),
         SizedBox(
           width: _width,
-          child: widget.child,
+          child: widget.builder != null
+              ? widget.builder!(_width)
+              : widget.child,
         ),
         if (widget.isLeft) _buildHandle(),
       ],

@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Payment screen for completing a subscription purchase.
 ///
@@ -35,19 +37,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     if (!authState.isAuthenticated) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Payment')),
+        appBar: AppBar(title: Text(l10n.get('payment'))),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Please log in to subscribe.'),
+              Text(l10n.get('please_log_in_to_subscribe')),
               const SizedBox(height: AppDimensions.spacingXL),
               ElevatedButton(
                 onPressed: () => context.go('/login'),
-                child: const Text('Log In'),
+                child: Text(l10n.get('log_in')),
               ),
             ],
           ),
@@ -58,13 +62,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     if (_paymentComplete) {
       return _PaymentSuccess(
         plan: _selectedPlan,
+        l10n: l10n,
         onDone: () => context.go('/dashboard'),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complete Payment'),
+        title: Text(l10n.get('complete_payment')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/subscription'),
@@ -79,7 +84,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Order summary
-              _OrderSummary(plan: _selectedPlan),
+              _OrderSummary(plan: _selectedPlan, l10n: l10n),
               const SizedBox(height: AppDimensions.spacingXXXL),
 
               // Payment method section
@@ -94,9 +99,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Payment Method',
-                      style: TextStyle(
+                    Text(
+                      l10n.get('payment_method'),
+                      style: const TextStyle(
                         fontSize: AppDimensions.fontSizeLG,
                         fontWeight: FontWeight.bold,
                       ),
@@ -123,7 +128,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             ),
                             const SizedBox(height: AppDimensions.spacingXL),
                             Text(
-                              'TossPayments Widget',
+                              l10n.get('tosspayments_widget'),
                               style: TextStyle(
                                 fontSize: AppDimensions.fontSizeLG,
                                 color: Colors.grey.shade500,
@@ -132,8 +137,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             ),
                             const SizedBox(height: AppDimensions.spacingMD),
                             Text(
-                              'Payment form will be loaded here\n'
-                              'via TossPayments JavaScript SDK',
+                              l10n.get('tosspayments_widget_hint'),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: AppDimensions.fontSizeSM,
@@ -149,7 +153,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
                     // For demo: direct activate button
                     Text(
-                      'For testing, use the button below to simulate payment:',
+                      l10n.get('payment_test_hint'),
                       style: TextStyle(
                         fontSize: AppDimensions.fontSizeSM,
                         color: Colors.grey.shade500,
@@ -193,7 +197,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           ),
                         )
                       : Text(
-                          'Pay ${_planPrice(_selectedPlan)}/month',
+                          '${l10n.get('pay_amount_per_month_prefix')} ${_planPrice(_selectedPlan)}${l10n.get('pay_amount_per_month_suffix')}'
+                              .trim(),
                           style: const TextStyle(
                             fontSize: AppDimensions.fontSizeLG,
                             fontWeight: FontWeight.bold,
@@ -206,9 +211,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
               // Terms
               Text(
-                'By subscribing, you agree to our Terms of Service. '
-                'Your subscription will automatically renew each month. '
-                'You can cancel at any time.',
+                l10n.get('terms_of_service_notice'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: AppDimensions.fontSizeXS,
@@ -247,21 +250,24 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   String _planPrice(SubscriptionPlan plan) {
+    final l10n = AppLocalizations.of(
+        ref.read(settingsProvider).language.code);
     switch (plan) {
       case SubscriptionPlan.pro:
         return '₩9,900';
       case SubscriptionPlan.enterprise:
         return '₩29,900';
       default:
-        return 'Free';
+        return l10n.get('free');
     }
   }
 }
 
 class _OrderSummary extends StatelessWidget {
   final SubscriptionPlan plan;
+  final AppLocalizations l10n;
 
-  const _OrderSummary({required this.plan});
+  const _OrderSummary({required this.plan, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -275,9 +281,9 @@ class _OrderSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Order Summary',
-            style: TextStyle(
+          Text(
+            l10n.get('order_summary'),
+            style: const TextStyle(
               fontSize: AppDimensions.fontSizeLG,
               fontWeight: FontWeight.bold,
             ),
@@ -287,7 +293,7 @@ class _OrderSummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'ICanNote ${plan.name.toUpperCase()} Plan',
+                'ICanNote ${plan.name.toUpperCase()} ${l10n.get('plan_suffix')}',
                 style: const TextStyle(fontSize: AppDimensions.fontSizeMD),
               ),
               Text(
@@ -303,9 +309,9 @@ class _OrderSummary extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total (monthly)',
-                style: TextStyle(
+              Text(
+                l10n.get('total_monthly'),
+                style: const TextStyle(
                   fontSize: AppDimensions.fontSizeLG,
                   fontWeight: FontWeight.bold,
                 ),
@@ -332,16 +338,21 @@ class _OrderSummary extends StatelessWidget {
       case SubscriptionPlan.enterprise:
         return '₩29,900';
       default:
-        return 'Free';
+        return l10n.get('free');
     }
   }
 }
 
 class _PaymentSuccess extends StatelessWidget {
   final SubscriptionPlan plan;
+  final AppLocalizations l10n;
   final VoidCallback onDone;
 
-  const _PaymentSuccess({required this.plan, required this.onDone});
+  const _PaymentSuccess({
+    required this.plan,
+    required this.l10n,
+    required this.onDone,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -356,16 +367,17 @@ class _PaymentSuccess extends StatelessWidget {
               color: AppColors.secondary,
             ),
             const SizedBox(height: AppDimensions.spacingXXL),
-            const Text(
-              'Payment Successful!',
-              style: TextStyle(
+            Text(
+              l10n.get('payment_successful'),
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: AppDimensions.spacingXL),
             Text(
-              'Your ${plan.name.toUpperCase()} plan is now active.',
+              '${l10n.get('plan_now_active_prefix')} ${plan.name.toUpperCase()} ${l10n.get('plan_now_active_suffix')}'
+                  .trim(),
               style: TextStyle(
                 fontSize: AppDimensions.fontSizeLG,
                 color: Colors.grey.shade600,
@@ -382,7 +394,7 @@ class _PaymentSuccess extends StatelessWidget {
                   vertical: AppDimensions.spacingLG,
                 ),
               ),
-              child: const Text('Go to Dashboard'),
+              child: Text(l10n.get('go_to_dashboard')),
             ),
           ],
         ),

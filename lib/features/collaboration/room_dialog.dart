@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/sync_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Dialog to create a new collaboration room.
 class CreateRoomDialog extends ConsumerStatefulWidget {
@@ -14,9 +16,17 @@ class CreateRoomDialog extends ConsumerStatefulWidget {
 }
 
 class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
-  final _titleController = TextEditingController(text: 'My Lecture Room');
+  final _titleController = TextEditingController();
   bool _isCreating = false;
   String? _inviteCode;
+
+  @override
+  void initState() {
+    super.initState();
+    final l10n = AppLocalizations.of(
+        ref.read(settingsProvider).language.code);
+    _titleController.text = l10n.get('my_lecture_room');
+  }
 
   @override
   void dispose() {
@@ -39,8 +49,10 @@ class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
         });
       } else {
         setState(() => _isCreating = false);
+        final l10n = AppLocalizations.of(
+            ref.read(settingsProvider).language.code);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create room. Check Firebase config.')),
+          SnackBar(content: Text(l10n.get('failed_to_create_room'))),
         );
       }
     }
@@ -48,13 +60,15 @@ class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     if (_inviteCode != null) {
       return AlertDialog(
-        title: const Text('Room Created'),
+        title: Text(l10n.get('room_created')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Share this invite code with participants:'),
+            Text(l10n.get('share_invite_code')),
             const SizedBox(height: AppDimensions.spacingXL),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -81,33 +95,33 @@ class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: _inviteCode!));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invite code copied!')),
+                  SnackBar(content: Text(l10n.get('invite_code_copied'))),
                 );
               },
               icon: const Icon(Icons.copy),
-              label: const Text('Copy Code'),
+              label: Text(l10n.get('copy_code')),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Done'),
+            child: Text(l10n.get('done')),
           ),
         ],
       );
     }
 
     return AlertDialog(
-      title: const Text('Create Room'),
+      title: Text(l10n.get('create_room')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Room Title',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.get('room_title'),
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -115,7 +129,7 @@ class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.get('cancel')),
         ),
         ElevatedButton(
           onPressed: _isCreating ? null : _createRoom,
@@ -125,7 +139,7 @@ class _CreateRoomDialogState extends ConsumerState<CreateRoomDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Create'),
+              : Text(l10n.get('create')),
         ),
       ],
     );
@@ -162,8 +176,10 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
       if (success) {
         Navigator.pop(context, true);
       } else {
+        final l10n = AppLocalizations.of(
+            ref.read(settingsProvider).language.code);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Room not found. Check the code.')),
+          SnackBar(content: Text(l10n.get('room_not_found_code'))),
         );
       }
     }
@@ -171,12 +187,14 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     return AlertDialog(
-      title: const Text('Join Room'),
+      title: Text(l10n.get('join_room')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Enter the 6-character invite code:'),
+          Text(l10n.get('enter_6_char_code')),
           const SizedBox(height: AppDimensions.spacingXL),
           TextField(
             controller: _codeController,
@@ -199,7 +217,7 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.get('cancel')),
         ),
         ElevatedButton(
           onPressed: _isJoining ? null : _joinRoom,
@@ -209,7 +227,7 @@ class _JoinRoomDialogState extends ConsumerState<JoinRoomDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Join'),
+              : Text(l10n.get('join')),
         ),
       ],
     );

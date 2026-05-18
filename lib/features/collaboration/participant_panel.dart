@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/sync_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Shows a list of participants in the current collaboration room.
 class ParticipantPanel extends ConsumerWidget {
@@ -11,6 +13,8 @@ class ParticipantPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     if (!syncState.isConnected) return const SizedBox.shrink();
 
@@ -37,7 +41,7 @@ class ParticipantPanel extends ConsumerWidget {
               const Icon(Icons.people, size: AppDimensions.iconSizeMD),
               const SizedBox(width: AppDimensions.spacingMD),
               Text(
-                'Participants (${syncState.participants.length})',
+                '${l10n.get('participants')} (${syncState.participants.length})',
                 style: const TextStyle(
                   fontSize: AppDimensions.fontSizeMD,
                   fontWeight: FontWeight.bold,
@@ -96,8 +100,8 @@ class ParticipantPanel extends ConsumerWidget {
                               : Colors.grey,
                         ),
                         tooltip: p.canDraw
-                            ? 'Disable drawing'
-                            : 'Enable drawing',
+                            ? l10n.get('disable_drawing')
+                            : l10n.get('enable_drawing'),
                         onPressed: () => ref
                             .read(syncProvider.notifier)
                             .togglePermission(p.userId),
@@ -113,7 +117,7 @@ class ParticipantPanel extends ConsumerWidget {
           if (syncState.inviteCode != null) ...[
             const Divider(),
             Text(
-              'Code: ${syncState.inviteCode}',
+              '${l10n.get('code_prefix')} ${syncState.inviteCode}',
               style: TextStyle(
                 fontSize: AppDimensions.fontSizeXS,
                 color: Colors.grey.shade500,

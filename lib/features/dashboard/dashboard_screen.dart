@@ -5,9 +5,12 @@ import '../../providers/auth_provider.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/subscription_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/file_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
+import '../../widgets/password_prompt.dart';
 import 'lecture_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -17,6 +20,8 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final lectureState = ref.watch(lectureProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return Scaffold(
       backgroundColor: AppColors.canvasBackground,
@@ -42,7 +47,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.logout),
-              tooltip: 'Sign Out',
+              tooltip: l10n.get('sign_out'),
               onPressed: () {
                 ref.read(authProvider.notifier).signOut();
                 context.go('/login');
@@ -59,9 +64,9 @@ class DashboardScreen extends ConsumerWidget {
             // Header
             Row(
               children: [
-                const Text(
-                  'My Lectures',
-                  style: TextStyle(
+                Text(
+                  l10n.get('my_lectures'),
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -70,7 +75,7 @@ class DashboardScreen extends ConsumerWidget {
                 ElevatedButton.icon(
                   onPressed: () => _openIcnFile(context, ref),
                   icon: const Icon(Icons.folder_open),
-                  label: const Text('Open File'),
+                  label: Text(l10n.get('open_file')),
                 ),
                 const SizedBox(width: AppDimensions.spacingMD),
                 ElevatedButton.icon(
@@ -79,7 +84,7 @@ class DashboardScreen extends ConsumerWidget {
                     context.go('/editor');
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('New Lecture'),
+                  label: Text(l10n.get('new_lecture')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -92,7 +97,7 @@ class DashboardScreen extends ConsumerWidget {
             // Lecture grid
             Expanded(
               child: lectureState.lecture == null
-                  ? _EmptyState()
+                  ? _EmptyState(l10n: l10n)
                   : GridView.count(
                       crossAxisCount: 4,
                       mainAxisSpacing: AppDimensions.spacingXL,
@@ -104,6 +109,7 @@ class DashboardScreen extends ConsumerWidget {
                           pageCount: lectureState.lecture!.pages.length,
                           lastModified: lectureState.lecture!.updatedAt,
                           onTap: () => context.go('/editor'),
+                          l10n: l10n,
                         ),
                       ],
                     ),
@@ -116,7 +122,13 @@ class DashboardScreen extends ConsumerWidget {
 
   Future<void> _openIcnFile(BuildContext context, WidgetRef ref) async {
     final fileService = FileService();
-    final lecture = await fileService.openIcnFile();
+    final l10n =
+        AppLocalizations.of(ref.read(settingsProvider).language.code);
+    final lecture = await fileService.openIcnFile(
+      onPasswordRequired: () => context.mounted
+          ? showPasswordPrompt(context, l10n)
+          : Future.value(null),
+    );
     if (lecture != null && context.mounted) {
       ref.read(lectureProvider.notifier).loadLecture(lecture);
       if (lecture.pages.isNotEmpty) {
@@ -174,6 +186,10 @@ class _SubscriptionBadge extends ConsumerWidget {
 }
 
 class _EmptyState extends StatelessWidget {
+  final AppLocalizations l10n;
+
+  const _EmptyState({required this.l10n});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -187,7 +203,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spacingXL),
           Text(
-            'No lectures yet',
+            l10n.get('no_lectures'),
             style: TextStyle(
               fontSize: AppDimensions.fontSizeLG,
               color: Colors.grey.shade600,
@@ -195,7 +211,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.spacingMD),
           Text(
-            'Create a new lecture or open an existing file to get started.',
+            l10n.get('empty_lectures_hint'),
             style: TextStyle(
               fontSize: AppDimensions.fontSizeMD,
               color: Colors.grey.shade500,

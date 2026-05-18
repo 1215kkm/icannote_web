@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 class LectureCard extends StatelessWidget {
   final String title;
   final int pageCount;
   final DateTime lastModified;
   final VoidCallback onTap;
+  final AppLocalizations l10n;
 
   const LectureCard({
     super.key,
@@ -14,6 +16,7 @@ class LectureCard extends StatelessWidget {
     required this.pageCount,
     required this.lastModified,
     required this.onTap,
+    required this.l10n,
   });
 
   @override
@@ -73,7 +76,7 @@ class LectureCard extends StatelessWidget {
             const SizedBox(height: AppDimensions.spacingSM),
             // Info
             Text(
-              '$pageCount pages',
+              '$pageCount ${l10n.get('pages_suffix')}',
               style: TextStyle(
                 fontSize: AppDimensions.fontSizeSM,
                 color: Colors.grey.shade600,

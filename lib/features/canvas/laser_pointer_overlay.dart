@@ -38,19 +38,21 @@ class LaserPointerOverlayState extends State<LaserPointerOverlay>
   }
 
   void addPoint(Offset position) {
-    if (!widget.isActive) return;
+    if (!widget.isActive || !mounted) return;
     setState(() {
       _points.add(_LaserPoint(position, DateTime.now()));
     });
   }
 
   void _cleanup() {
-    if (_points.isEmpty) return;
+    if (_points.isEmpty || !mounted) return;
     final now = DateTime.now();
     final cutoff = now.subtract(widget.fadeDuration);
-    final hadPoints = _points.isNotEmpty;
+    final before = _points.length;
     _points.removeWhere((p) => p.time.isBefore(cutoff));
-    if (hadPoints && _points.isEmpty) {
+    // Repaint while points remain (so the trail keeps fading) and once
+    // more when the last point expires.
+    if (_points.length != before || _points.isNotEmpty) {
       setState(() {});
     }
   }
@@ -62,6 +64,7 @@ class LaserPointerOverlayState extends State<LaserPointerOverlay>
     }
 
     return CustomPaint(
+      size: Size.infinite,
       painter: _LaserPainter(
         points: _points,
         fadeDuration: widget.fadeDuration,

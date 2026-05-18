@@ -2,6 +2,31 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+// ──────────────────── JSON parse helpers ────────────────────
+// Tolerant helpers so a single malformed/foreign (.icn) element never
+// throws and aborts the whole file load.
+
+double _numAt(List? list, int index, double fallback) {
+  if (list == null || index >= list.length) return fallback;
+  final v = list[index];
+  return v is num ? v.toDouble() : fallback;
+}
+
+Rect _rectFromJson(dynamic raw) {
+  final list = raw is List ? raw : null;
+  return Rect.fromLTRB(
+    _numAt(list, 0, 0),
+    _numAt(list, 1, 0),
+    _numAt(list, 2, 0),
+    _numAt(list, 3, 0),
+  );
+}
+
+Color _colorFromJson(dynamic raw, [int fallback = 0xFF000000]) {
+  if (raw is num) return Color(raw.toInt());
+  return Color(fallback);
+}
+
 /// Base class for all drawable elements on the canvas
 abstract class CanvasElement {
   final String id;
@@ -42,7 +67,7 @@ abstract class CanvasElement {
 
   /// Factory to deserialize from JSON
   static CanvasElement fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
+    final type = json['type'] as String?;
     switch (type) {
       case 'stroke':
         return StrokeElement.fromJson(json);
@@ -225,15 +250,17 @@ class StrokeElement extends CanvasElement {
       };
 
   factory StrokeElement.fromJson(Map<String, dynamic> json) => StrokeElement(
-        id: json['id'] as String,
+        id: json['id'] as String?,
         tool: StrokeTool.values.firstWhere(
           (t) => t.name == json['tool'],
           orElse: () => StrokeTool.pen,
         ),
-        color: Color(json['color'] as int),
-        strokeWidth: (json['width'] as num).toDouble(),
-        points: (json['points'] as List)
-            .map((p) => StrokePoint.fromJson(p as Map<String, dynamic>))
+        color: _colorFromJson(json['color']),
+        strokeWidth: (json['width'] as num?)?.toDouble() ?? 3.0,
+        points: ((json['points'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((p) =>
+                StrokePoint.fromJson(Map<String, dynamic>.from(p)))
             .toList(),
         zIndex: json['zIndex'] as int? ?? 0,
         rotation: (json['rotation'] as num?)?.toDouble() ?? 0,
@@ -390,22 +417,17 @@ class ShapeElement extends CanvasElement {
       };
 
   factory ShapeElement.fromJson(Map<String, dynamic> json) {
-    final r = json['rect'] as List;
     return ShapeElement(
-      id: json['id'] as String,
+      id: json['id'] as String?,
       shapeType: ShapeType.values.firstWhere(
         (t) => t.name == json['shapeType'],
         orElse: () => ShapeType.rectangle,
       ),
-      rect: Rect.fromLTRB(
-        (r[0] as num).toDouble(),
-        (r[1] as num).toDouble(),
-        (r[2] as num).toDouble(),
-        (r[3] as num).toDouble(),
-      ),
-      strokeColor: Color(json['strokeColor'] as int),
-      fillColor: json['fillColor'] != null ? Color(json['fillColor'] as int) : null,
-      strokeWidth: (json['width'] as num).toDouble(),
+      rect: _rectFromJson(json['rect']),
+      strokeColor: _colorFromJson(json['strokeColor']),
+      fillColor:
+          json['fillColor'] != null ? _colorFromJson(json['fillColor']) : null,
+      strokeWidth: (json['width'] as num?)?.toDouble() ?? 2.0,
       sides: json['sides'] as int? ?? 5,
       zIndex: json['zIndex'] as int? ?? 0,
       rotation: (json['rotation'] as num?)?.toDouble() ?? 0,
@@ -531,16 +553,16 @@ class TextCanvasElement extends CanvasElement {
       };
 
   factory TextCanvasElement.fromJson(Map<String, dynamic> json) {
-    final pos = json['position'] as List;
+    final pos = json['position'] as List?;
     return TextCanvasElement(
-      id: json['id'] as String,
-      text: json['text'] as String,
+      id: json['id'] as String?,
+      text: json['text'] as String? ?? '',
       position: Offset(
-        (pos[0] as num).toDouble(),
-        (pos[1] as num).toDouble(),
+        _numAt(pos, 0, 0),
+        _numAt(pos, 1, 0),
       ),
       fontSize: (json['fontSize'] as num?)?.toDouble() ?? 16,
-      color: Color(json['color'] as int? ?? 0xFF000000),
+      color: _colorFromJson(json['color']),
       isBold: json['isBold'] as bool? ?? false,
       isItalic: json['isItalic'] as bool? ?? false,
       maxWidth: (json['maxWidth'] as num?)?.toDouble() ?? 300,
@@ -612,16 +634,10 @@ class ImageCanvasElement extends CanvasElement {
       };
 
   factory ImageCanvasElement.fromJson(Map<String, dynamic> json) {
-    final r = json['rect'] as List;
     return ImageCanvasElement(
-      id: json['id'] as String,
-      imageUrl: json['imageUrl'] as String,
-      rect: Rect.fromLTRB(
-        (r[0] as num).toDouble(),
-        (r[1] as num).toDouble(),
-        (r[2] as num).toDouble(),
-        (r[3] as num).toDouble(),
-      ),
+      id: json['id'] as String?,
+      imageUrl: json['imageUrl'] as String? ?? '',
+      rect: _rectFromJson(json['rect']),
       zIndex: json['zIndex'] as int? ?? 0,
       rotation: (json['rotation'] as num?)?.toDouble() ?? 0,
       timestamp: json['timestamp'] as int? ?? 0,
@@ -686,6 +702,7 @@ class StickerElement extends CanvasElement {
     Color? coverColor,
     bool? isRevealed,
     int? zIndex,
+    double? rotation,
     bool? isDeleted,
   }) {
     return StickerElement(
@@ -694,7 +711,7 @@ class StickerElement extends CanvasElement {
       coverColor: coverColor ?? this.coverColor,
       isRevealed: isRevealed ?? this.isRevealed,
       zIndex: zIndex ?? this.zIndex,
-      rotation: rotation,
+      rotation: rotation ?? this.rotation,
       timestamp: timestamp,
       isDeleted: isDeleted ?? this.isDeleted,
     );
@@ -702,7 +719,11 @@ class StickerElement extends CanvasElement {
 
   @override
   CanvasElement copyWithBase({int? zIndex, double? rotation, bool? isDeleted}) {
-    return copyWith(zIndex: zIndex, isDeleted: isDeleted);
+    return copyWith(
+      zIndex: zIndex,
+      rotation: rotation,
+      isDeleted: isDeleted,
+    );
   }
 
   @override
@@ -719,16 +740,10 @@ class StickerElement extends CanvasElement {
       };
 
   factory StickerElement.fromJson(Map<String, dynamic> json) {
-    final r = json['rect'] as List;
     return StickerElement(
-      id: json['id'] as String,
-      rect: Rect.fromLTRB(
-        (r[0] as num).toDouble(),
-        (r[1] as num).toDouble(),
-        (r[2] as num).toDouble(),
-        (r[3] as num).toDouble(),
-      ),
-      coverColor: Color(json['coverColor'] as int? ?? 0xFFFFC107),
+      id: json['id'] as String?,
+      rect: _rectFromJson(json['rect']),
+      coverColor: _colorFromJson(json['coverColor'], 0xFFFFC107),
       isRevealed: json['isRevealed'] as bool? ?? false,
       zIndex: json['zIndex'] as int? ?? 0,
       rotation: (json['rotation'] as num?)?.toDouble() ?? 0,

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -42,6 +44,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
@@ -85,9 +89,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     color: AppColors.primary,
                   ),
                   const SizedBox(height: AppDimensions.spacingMD),
-                  const Text(
-                    'Create Account',
-                    style: TextStyle(
+                  Text(
+                    l10n.get('create_account'),
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,14 +101,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   // Display name
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Display Name',
-                      prefixIcon: Icon(Icons.person_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.get('display_name'),
+                      prefixIcon: const Icon(Icons.person_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your name';
+                        return l10n.get('please_enter_name');
                       }
                       return null;
                     },
@@ -115,17 +119,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.get('email'),
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
+                        return l10n.get('please_enter_email');
                       }
                       if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                        return l10n.get('please_enter_valid_email');
                       }
                       return null;
                     },
@@ -137,7 +141,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l10n.get('password'),
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -153,10 +157,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
+                        return l10n.get('please_enter_a_password');
                       }
                       if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                        return l10n.get('password_min_length');
                       }
                       return null;
                     },
@@ -167,14 +171,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirm Password',
-                      prefixIcon: Icon(Icons.lock_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.get('confirm_password'),
+                      prefixIcon: const Icon(Icons.lock_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return l10n.get('passwords_do_not_match');
                       }
                       return null;
                     },
@@ -205,9 +209,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Create Account',
-                              style: TextStyle(
+                          : Text(
+                              l10n.get('create_account'),
+                              style: const TextStyle(
                                   fontSize: AppDimensions.fontSizeLG),
                             ),
                     ),
@@ -219,12 +223,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Already have an account? ',
+                        l10n.get('have_account_question'),
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                       TextButton(
                         onPressed: () => context.go('/login'),
-                        child: const Text('Sign In'),
+                        child: Text(l10n.get('sign_in')),
                       ),
                     ],
                   ),

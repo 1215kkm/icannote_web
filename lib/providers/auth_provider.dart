@@ -1,7 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../core/firebase_status.dart';
 import '../models/user_model.dart';
+
+const _cloudNotConfiguredMsg =
+    'Cloud login is not configured on this build. '
+    'The local whiteboard works fully offline.';
 
 enum AuthStatus { unauthenticated, loading, authenticated, error }
 
@@ -38,6 +43,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void _listenAuthChanges() {
+    if (!isFirebaseReady) {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      return;
+    }
     try {
       FirebaseAuth.instance.authStateChanges().listen((User? user) {
         if (user != null) {
@@ -62,6 +71,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> signInWithEmail(String email, String password) async {
+    if (!isFirebaseReady) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: _cloudNotConfiguredMsg,
+      );
+      return;
+    }
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -86,6 +102,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String password,
     String displayName,
   ) async {
+    if (!isFirebaseReady) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: _cloudNotConfiguredMsg,
+      );
+      return;
+    }
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
     try {
       final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(

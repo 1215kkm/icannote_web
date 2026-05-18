@@ -51,13 +51,24 @@ class PagesPanel extends ConsumerWidget {
                         isSelected: isSelected,
                         backgroundColor: page.backgroundColor,
                         onTap: () {
-                          ref
-                              .read(lectureProvider.notifier)
-                              .setCurrentPage(index);
-                          // Load the elements for this page
+                          final lectureNotifier =
+                              ref.read(lectureProvider.notifier);
+                          // 1. Flush the current page's canvas edits so
+                          //    switching pages never loses unsaved work.
+                          lectureNotifier.updateCurrentPageElements(
+                            ref.read(canvasProvider).elements,
+                          );
+                          // 2. Switch to the tapped page.
+                          lectureNotifier.setCurrentPage(index);
+                          // 3. Load that page's elements (re-read after the
+                          //    flush so we get the persisted state).
+                          final newPage =
+                              ref.read(lectureProvider).currentPage;
                           ref
                               .read(canvasProvider.notifier)
-                              .loadElements(page.visibleElements);
+                              .loadElements(
+                                newPage?.visibleElements ?? const [],
+                              );
                         },
                       );
                     },

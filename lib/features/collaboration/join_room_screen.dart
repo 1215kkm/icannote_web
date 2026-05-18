@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/sync_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Screen that auto-joins a room by invite code from URL route.
 class JoinRoomScreen extends ConsumerStatefulWidget {
@@ -34,22 +36,24 @@ class _JoinRoomScreenState extends ConsumerState<JoinRoomScreen> {
     } else {
       setState(() {
         _isJoining = false;
-        _error = 'Room not found. Check the invite code.';
+        _error = 'room_not_found_invite_code';
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     return Scaffold(
       body: Center(
         child: _isJoining
-            ? const Column(
+            ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Joining room...'),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(l10n.get('joining_room')),
                 ],
               )
             : Column(
@@ -57,11 +61,11 @@ class _JoinRoomScreenState extends ConsumerState<JoinRoomScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text(_error ?? 'Failed to join room.'),
+                  Text(l10n.get(_error ?? 'failed_to_join_room')),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => context.go('/'),
-                    child: const Text('Go Home'),
+                    child: Text(l10n.get('go_home')),
                   ),
                 ],
               ),

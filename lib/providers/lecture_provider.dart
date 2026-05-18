@@ -98,6 +98,19 @@ class LectureNotifier extends StateNotifier<LectureState> {
     );
   }
 
+  /// Replace the current page in place (e.g. background change) without
+  /// resetting the page index or the deleted-pages history.
+  void updateCurrentPage(PageData page) {
+    if (state.lecture == null) return;
+    final idx = state.currentPageIndex;
+    if (idx < 0 || idx >= state.lecture!.pages.length) return;
+    final pages = [...state.lecture!.pages];
+    pages[idx] = page;
+    state = state.copyWith(
+      lecture: () => state.lecture!.copyWith(pages: pages),
+    );
+  }
+
   void updateCurrentPageElements(List<CanvasElement> elements) {
     if (state.lecture == null || state.currentPage == null) return;
     final pages = [...state.lecture!.pages];

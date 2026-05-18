@@ -69,7 +69,11 @@ class _StrokeWidthDialogState extends State<_StrokeWidthDialog> {
   @override
   void initState() {
     super.initState();
-    _width = widget.initialWidth;
+    // Clamp to the Slider's range — an out-of-range value makes
+    // Slider assert and crashes the dialog.
+    _width = widget.initialWidth
+        .clamp(AppConstants.minStrokeWidth, AppConstants.maxStrokeWidth)
+        .toDouble();
   }
 
   @override

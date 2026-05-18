@@ -485,6 +485,33 @@ class CanvasNotifier extends StateNotifier<CanvasState> {
     _modifyElement(id, moved);
   }
 
+  /// Public, undoable replacement of an element by id.
+  /// Use this from toolbars/panels instead of [loadElements] so the
+  /// change is recorded on the undo stack and the canvas repaints.
+  void modifyElementById(String id, CanvasElement newElement) {
+    _modifyElement(id, newElement);
+  }
+
+  /// Add an arbitrary element to the canvas (undoable).
+  /// Used by the library preset insert and other programmatic adds.
+  void addElement(CanvasElement element) => _addElement(element);
+
+  /// Replace several elements at once as a SINGLE undoable action.
+  /// Each replacement element is matched to an existing one by id.
+  /// Use this for bulk transforms (e.g. invert colors) instead of
+  /// [loadElements], which would wipe the undo/redo history.
+  void replaceElements(List<CanvasElement> updated) {
+    final cmds = <CanvasCommand>[];
+    for (final nw in updated) {
+      final idx = state.elements.indexWhere((e) => e.id == nw.id);
+      if (idx != -1 && !identical(state.elements[idx], nw)) {
+        cmds.add(ModifyElementCommand(nw.id, state.elements[idx], nw));
+      }
+    }
+    if (cmds.isEmpty) return;
+    _executeCommand(BatchCommand(cmds));
+  }
+
   void deleteSelected() {
     if (state.selectedElementId == null) return;
     _removeElement(state.selectedElementId!);

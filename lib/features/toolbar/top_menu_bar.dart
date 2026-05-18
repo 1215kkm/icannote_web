@@ -17,6 +17,7 @@ import '../../services/file_service.dart';
 import '../../services/canvas_export_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/l10n/app_localizations.dart';
+import '../../widgets/password_prompt.dart';
 import '../collaboration/room_dialog.dart';
 
 class TopMenuBar extends ConsumerWidget {
@@ -270,9 +271,11 @@ class TopMenuBar extends ConsumerWidget {
           rect: Rect.fromLTWH(50, yOffset, 800, 600),
         );
 
-        final newElements = [...currentElements, imageElement];
-        ref.read(canvasProvider.notifier).loadElements(newElements);
-        ref.read(lectureProvider.notifier).updateCurrentPageElements(newElements);
+        // Undoable add (loadElements would wipe the undo/redo stack).
+        ref.read(canvasProvider.notifier).addElement(imageElement);
+        ref.read(lectureProvider.notifier).updateCurrentPageElements(
+              ref.read(canvasProvider).elements,
+            );
       } catch (e) {
         debugPrint('Error inserting image: $e');
       }
@@ -354,34 +357,24 @@ class TopMenuBar extends ConsumerWidget {
   }
 
   void _setBackgroundColor(WidgetRef ref, Color color) {
-    final lectureState = ref.read(lectureProvider);
-    if (lectureState.lecture == null || lectureState.currentPage == null) return;
-    final pages = [...lectureState.lecture!.pages];
-    pages[lectureState.currentPageIndex] =
-        lectureState.currentPage!.copyWith(backgroundColor: color);
-    ref.read(lectureProvider.notifier).loadLecture(
-      lectureState.lecture!.copyWith(pages: pages),
-    );
-    // Restore page index
-    ref.read(lectureProvider.notifier).setCurrentPage(lectureState.currentPageIndex);
+    final page = ref.read(lectureProvider).currentPage;
+    if (page == null) return;
+    // In-place page update: no undo wipe, keeps page index & history.
+    // canvas_screen watches lectureProvider and repaints automatically.
+    ref
+        .read(lectureProvider.notifier)
+        .updateCurrentPage(page.copyWith(backgroundColor: color));
   }
 
   void _setBackgroundPattern(BuildContext context, WidgetRef ref, String pattern) {
-    // Store pattern as background image URL marker for the canvas painter
-    final lectureState = ref.read(lectureProvider);
-    if (lectureState.lecture == null || lectureState.currentPage == null) return;
-    final pages = [...lectureState.lecture!.pages];
-    pages[lectureState.currentPageIndex] = lectureState.currentPage!.copyWith(
-      backgroundImageUrl: pattern == 'none' ? null : 'pattern:$pattern',
-    );
-    ref.read(lectureProvider.notifier).loadLecture(
-      lectureState.lecture!.copyWith(pages: pages),
-    );
-    ref.read(lectureProvider.notifier).setCurrentPage(lectureState.currentPageIndex);
-    // Reload canvas elements to trigger repaint
-    ref.read(canvasProvider.notifier).loadElements(
-      ref.read(canvasProvider).elements,
-    );
+    final page = ref.read(lectureProvider).currentPage;
+    if (page == null) return;
+    // 'none' must actually clear the pattern (copyWith can't null it
+    // without the explicit clear flag).
+    final updated = pattern == 'none'
+        ? page.copyWith(clearBackgroundImage: true)
+        : page.copyWith(backgroundImageUrl: 'pattern:$pattern');
+    ref.read(lectureProvider.notifier).updateCurrentPage(updated);
   }
 
   // ──── Sound/Video Dialog ────
@@ -505,7 +498,13 @@ class TopMenuBar extends ConsumerWidget {
   void _openLectureFile(BuildContext context, WidgetRef ref) {
     Future.microtask(() async {
       final fileService = FileService();
-      final lecture = await fileService.openIcnFile();
+      final l10n =
+          AppLocalizations.of(ref.read(settingsProvider).language.code);
+      final lecture = await fileService.openIcnFile(
+        onPasswordRequired: () => context.mounted
+            ? showPasswordPrompt(context, l10n)
+            : Future.value(null),
+      );
       if (lecture != null && context.mounted) {
         ref.read(lectureProvider.notifier).loadLecture(lecture);
         if (lecture.pages.isNotEmpty) {
@@ -523,76 +522,71 @@ class TopMenuBar extends ConsumerWidget {
       final files = await fileService.pickDocumentFiles();
       if (files == null || files.isEmpty || !context.mounted) return;
 
+      final l10n =
+          AppLocalizations.of(ref.read(settingsProvider).language.code);
       final imageExtensions = {'jpg', 'jpeg', 'png'};
-      final pdfExtensions = {'pdf'};
       final imageFiles = <PlatformFile>[];
-      final pdfFiles = <PlatformFile>[];
-      final docFiles = <PlatformFile>[];
+      // PDF and office docs cannot be rasterized client-side without a
+      // renderer, so they're reported as not-yet-supported instead of
+      // being inserted as unreadable placeholder boxes.
+      final unsupportedFiles = <PlatformFile>[];
 
       for (final file in files) {
         final ext = file.extension?.toLowerCase() ?? '';
         if (imageExtensions.contains(ext)) {
           imageFiles.add(file);
-        } else if (pdfExtensions.contains(ext)) {
-          pdfFiles.add(file);
         } else {
-          docFiles.add(file);
+          unsupportedFiles.add(file);
         }
       }
 
-      final currentElements = ref.read(canvasProvider).elements;
-      final newElements = <CanvasElement>[...currentElements];
+      final canvasNotifier = ref.read(canvasProvider.notifier);
       double yOffset = 50.0;
-
-      // Find existing bottom position
-      for (final el in currentElements) {
+      for (final el in ref.read(canvasProvider).elements) {
         final bottom = el.boundingBox.bottom;
         if (bottom + 50 > yOffset) yOffset = bottom + 50;
       }
 
-      // Process image files
+      var addedImages = 0;
       for (final file in imageFiles) {
         if (file.bytes == null) continue;
         final ext = file.extension?.toLowerCase() ?? 'png';
-        final mimeType = ext == 'jpg' || ext == 'jpeg' ? 'image/jpeg' : 'image/png';
+        final mimeType =
+            ext == 'jpg' || ext == 'jpeg' ? 'image/jpeg' : 'image/png';
         final base64Data = base64Encode(file.bytes!);
         final dataUrl = 'data:$mimeType;base64,$base64Data';
 
-        final imageElement = ImageCanvasElement(
+        // Undoable add (keeps undo/redo history intact).
+        canvasNotifier.addElement(ImageCanvasElement(
           imageUrl: dataUrl,
           rect: Rect.fromLTWH(50, yOffset, 800, 600),
-        );
-        newElements.add(imageElement);
+        ));
+        addedImages++;
         yOffset += 650;
       }
 
-      // Process PDF files - add each page as separate image pages in the lecture
-      for (final file in pdfFiles) {
-        if (file.bytes == null) continue;
-        // Store PDF raw data as a base64 data URL for now
-        // Each PDF is added as an image element showing the first page
-        final base64Data = base64Encode(file.bytes!);
-        final dataUrl = 'data:application/pdf;base64,$base64Data';
-        final imageElement = ImageCanvasElement(
-          imageUrl: dataUrl,
-          rect: Rect.fromLTWH(50, yOffset, 800, 600),
-        );
-        newElements.add(imageElement);
-        yOffset += 650;
+      if (addedImages > 0) {
+        ref.read(lectureProvider.notifier).updateCurrentPageElements(
+              ref.read(canvasProvider).elements,
+            );
       }
 
-      if (newElements.length > currentElements.length) {
-        ref.read(canvasProvider.notifier).loadElements(newElements);
-        ref.read(lectureProvider.notifier).updateCurrentPageElements(newElements);
-      }
-
-      // Show summary messages
+      // Localized summary
       if (context.mounted) {
         final messages = <String>[];
-        if (imageFiles.isNotEmpty) messages.add('${imageFiles.length} image(s) loaded');
-        if (pdfFiles.isNotEmpty) messages.add('${pdfFiles.length} PDF(s) loaded');
-        if (docFiles.isNotEmpty) {
-          messages.add('${docFiles.length} document(s) skipped (${docFiles.map((f) => f.extension?.toUpperCase()).toSet().join(", ")} format not yet supported)');
+        if (addedImages > 0) {
+          messages.add('$addedImages ${l10n.get('images_loaded')}');
+        }
+        if (unsupportedFiles.isNotEmpty) {
+          final formats = unsupportedFiles
+              .map((f) => f.extension?.toUpperCase())
+              .whereType<String>()
+              .toSet()
+              .join(', ');
+          messages.add(
+            '${unsupportedFiles.length} ${l10n.get('docs_skipped')} '
+            '($formats ${l10n.get('format_not_supported')})',
+          );
         }
         if (messages.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -933,15 +927,22 @@ class _PasswordProtectionDialogState extends State<_PasswordProtectionDialog> {
             );
             final updatedLecture = widget.ref.read(lectureProvider).lecture!;
             final fileService = FileService();
-            await fileService.saveLectureAs(updatedLecture);
+            final saved = await fileService.saveLectureAs(
+              updatedLecture,
+              password: _passwordController.text,
+            );
             if (context.mounted) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.get('saved_with_protection'))),
+                SnackBar(
+                  content: Text(saved
+                      ? l10n.get('saved_with_protection')
+                      : l10n.get('save_cancelled')),
+                ),
               );
             }
           },
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     );

@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Type of mathematical function to plot.
 enum GraphFunction {
@@ -318,6 +320,8 @@ class _GraphControlPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final graphState = ref.watch(graphProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return Container(
       width: 220,
@@ -341,9 +345,9 @@ class _GraphControlPanel extends ConsumerWidget {
             children: [
               const Icon(Icons.show_chart, size: 16),
               const SizedBox(width: AppDimensions.spacingSM),
-              const Text(
-                'Graph Tool',
-                style: TextStyle(
+              Text(
+                l10n.get('graph_tool'),
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: AppDimensions.fontSizeMD,
                 ),
@@ -358,7 +362,8 @@ class _GraphControlPanel extends ConsumerWidget {
           const Divider(),
 
           // Function selector
-          const Text('Function:', style: TextStyle(fontSize: 11)),
+          Text(l10n.get('graph_function'),
+              style: const TextStyle(fontSize: 11)),
           const SizedBox(height: AppDimensions.spacingSM),
           Wrap(
             spacing: 4,
@@ -423,7 +428,8 @@ class _GraphControlPanel extends ConsumerWidget {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 visualDensity: VisualDensity.compact,
               ),
-              const Text('Grid', style: TextStyle(fontSize: 11)),
+              Text(l10n.get('graph_grid'),
+                  style: const TextStyle(fontSize: 11)),
               const SizedBox(width: AppDimensions.spacingLG),
               Checkbox(
                 value: graphState.showAxes,
@@ -432,7 +438,8 @@ class _GraphControlPanel extends ConsumerWidget {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 visualDensity: VisualDensity.compact,
               ),
-              const Text('Axes', style: TextStyle(fontSize: 11)),
+              Text(l10n.get('graph_axes'),
+                  style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],

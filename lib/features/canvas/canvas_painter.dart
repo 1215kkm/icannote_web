@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/canvas_element.dart';
 
@@ -147,8 +148,13 @@ class CanvasPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CanvasPainter oldDelegate) {
+    // NOTE: compare list *contents*, not just length. In-place edits
+    // (move / recolor / font change / sticker reveal / undo of a modify)
+    // keep the same length but produce new element instances, so a
+    // length-only check would skip the repaint and the canvas would
+    // appear frozen until an element is added or removed.
     return oldDelegate.activeElement != activeElement ||
-        oldDelegate.elements.length != elements.length ||
+        !listEquals(oldDelegate.elements, elements) ||
         oldDelegate.cachedImage != cachedImage ||
         oldDelegate.selectedElementId != selectedElementId ||
         oldDelegate.backgroundPattern != backgroundPattern;

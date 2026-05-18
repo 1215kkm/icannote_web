@@ -7,9 +7,12 @@ import '../../models/canvas_element.dart';
 import '../../providers/lecture_provider.dart';
 import '../../providers/canvas_provider.dart';
 import '../../services/file_service.dart';
+import '../../providers/settings_provider.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../widgets/password_prompt.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -53,7 +56,13 @@ class HomeScreen extends ConsumerWidget {
 
   Future<void> _openIcnFile(BuildContext context, WidgetRef ref) async {
     final fileService = FileService();
-    final lecture = await fileService.openIcnFile();
+    final l10n =
+        AppLocalizations.of(ref.read(settingsProvider).language.code);
+    final lecture = await fileService.openIcnFile(
+      onPasswordRequired: () => context.mounted
+          ? showPasswordPrompt(context, l10n)
+          : Future.value(null),
+    );
     if (lecture != null && context.mounted) {
       ref.read(lectureProvider.notifier).loadLecture(lecture);
       // Load first page elements into canvas

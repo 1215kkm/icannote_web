@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/canvas_element.dart';
 import '../../providers/canvas_provider.dart';
+import '../../providers/lecture_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// A saved page preset in the library.
 class PagePreset {
@@ -146,6 +149,8 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
   @override
   Widget build(BuildContext context) {
     final libState = ref.watch(libraryProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     if (!libState.isOpen) return const SizedBox.shrink();
 
@@ -181,9 +186,9 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
                 children: [
                   const Icon(Icons.library_books, size: 16),
                   const SizedBox(width: AppDimensions.spacingMD),
-                  const Text(
-                    'Library',
-                    style: TextStyle(
+                  Text(
+                    l10n.get('library'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: AppDimensions.fontSizeMD,
                     ),
@@ -192,7 +197,7 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
                   // Save current page
                   IconButton(
                     icon: const Icon(Icons.add, size: 16),
-                    tooltip: 'Save current page as preset',
+                    tooltip: l10n.get('save_current_page_as_preset'),
                     onPressed: () => _showSaveDialog(),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
@@ -219,7 +224,7 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
               Padding(
                 padding: const EdgeInsets.all(AppDimensions.spacingXXL),
                 child: Text(
-                  'No presets saved yet.\nSave current page with the + button.',
+                  l10n.get('no_presets_saved'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: AppDimensions.fontSizeSM,
@@ -245,24 +250,26 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
   }
 
   void _showSaveDialog() {
+    final settings = ref.read(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     _nameController.text =
-        'Preset ${ref.read(libraryProvider).presets.length + 1}';
+        '${l10n.get('preset_default_name')} ${ref.read(libraryProvider).presets.length + 1}';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Save Preset'),
+        title: Text(l10n.get('save_preset')),
         content: TextField(
           controller: _nameController,
-          decoration: const InputDecoration(
-            labelText: 'Preset Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.get('preset_name'),
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.get('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -273,7 +280,7 @@ class _LibraryPanelState extends ConsumerState<LibraryPanel> {
                 Navigator.pop(ctx);
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.get('save')),
           ),
         ],
       ),
@@ -288,6 +295,8 @@ class _PresetTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
     return ListTile(
       dense: true,
       title: Text(
@@ -295,7 +304,7 @@ class _PresetTile extends ConsumerWidget {
         style: const TextStyle(fontSize: AppDimensions.fontSizeMD),
       ),
       subtitle: Text(
-        '${preset.elementsJson.length} elements',
+        '${preset.elementsJson.length} ${l10n.get('elements_suffix')}',
         style: TextStyle(
           fontSize: AppDimensions.fontSizeXS,
           color: Colors.grey.shade500,
@@ -307,14 +316,14 @@ class _PresetTile extends ConsumerWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.add_to_photos, size: 14),
-            tooltip: 'Insert into canvas',
+            tooltip: l10n.get('insert_into_canvas'),
             onPressed: () => _insertPreset(ref),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
           ),
           IconButton(
             icon: Icon(Icons.delete, size: 14, color: Colors.grey.shade400),
-            tooltip: 'Delete',
+            tooltip: l10n.get('delete'),
             onPressed: () =>
                 ref.read(libraryProvider.notifier).deletePreset(preset.id),
             padding: EdgeInsets.zero,
@@ -326,13 +335,26 @@ class _PresetTile extends ConsumerWidget {
   }
 
   void _insertPreset(WidgetRef ref) {
+    final notifier = ref.read(canvasProvider.notifier);
+    var inserted = 0;
     for (final json in preset.elementsJson) {
       try {
-        final element = CanvasElement.fromJson(json);
-        ref.read(canvasProvider.notifier).mergeRemoteElement(element);
+        // Strip the stored id so a fresh one is generated — otherwise
+        // re-inserting the same preset just replaces elements in place
+        // (dedup by id) and appears to do nothing on the 2nd use.
+        final copy = Map<String, dynamic>.from(json)..remove('id');
+        final element = CanvasElement.fromJson(copy);
+        notifier.addElement(element); // undoable
+        inserted++;
       } catch (e) {
         debugPrint('Failed to insert preset element: $e');
       }
     }
+    if (inserted > 0) {
+      ref
+          .read(lectureProvider.notifier)
+          .updateCurrentPageElements(ref.read(canvasProvider).elements);
+    }
+    ref.read(libraryProvider.notifier).close();
   }
 }

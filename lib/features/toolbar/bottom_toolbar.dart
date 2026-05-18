@@ -41,8 +41,7 @@ class BottomToolbar extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline,
                       size: AppDimensions.iconSizeMD),
-                  onPressed: () =>
-                      ref.read(lectureProvider.notifier).addPage(),
+                  onPressed: () => _addPage(ref),
                   tooltip: l10n.addPage,
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
@@ -61,9 +60,7 @@ class BottomToolbar extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.delete_outline,
                       size: AppDimensions.iconSizeMD),
-                  onPressed: () => ref
-                      .read(lectureProvider.notifier)
-                      .deletePage(lectureState.currentPageIndex),
+                  onPressed: () => _deletePage(ref),
                   tooltip: l10n.deletePage,
                   color: AppColors.toolbarIconDefault,
                   padding: EdgeInsets.zero,
@@ -135,12 +132,12 @@ class BottomToolbar extends ConsumerWidget {
               color: AppColors.toolbarDivider),
           _BottomAction(
             icon: Icons.library_books,
-            tooltip: l10n.get('library') == 'library' ? 'Library' : l10n.get('library'),
+            tooltip: l10n.library,
             onTap: () => ref.read(libraryProvider.notifier).toggle(),
           ),
           _BottomAction(
             icon: Icons.show_chart,
-            tooltip: l10n.get('graph') == 'graph' ? 'Graph' : l10n.get('graph'),
+            tooltip: l10n.graph,
             onTap: () => ref.read(graphProvider.notifier).toggle(),
           ),
           const RecordButton(),
@@ -202,7 +199,34 @@ class BottomToolbar extends ConsumerWidget {
     );
   }
 
-  /// Invert colors of all elements on the canvas.
+  /// Add a new page: flush the current page's edits first, then add the
+  /// blank page and clear the canvas so it reflects the new empty page.
+  void _addPage(WidgetRef ref) {
+    final lectureNotifier = ref.read(lectureProvider.notifier);
+    lectureNotifier.updateCurrentPageElements(
+      ref.read(canvasProvider).elements,
+    );
+    lectureNotifier.addPage();
+    final newPage = ref.read(lectureProvider).currentPage;
+    ref
+        .read(canvasProvider.notifier)
+        .loadElements(newPage?.visibleElements ?? const []);
+  }
+
+  /// Delete the current page (read the index fresh inside the callback,
+  /// never from a stale build closure), then sync the canvas to the
+  /// page that becomes current.
+  void _deletePage(WidgetRef ref) {
+    final lectureNotifier = ref.read(lectureProvider.notifier);
+    final index = ref.read(lectureProvider).currentPageIndex;
+    lectureNotifier.deletePage(index);
+    final newPage = ref.read(lectureProvider).currentPage;
+    ref
+        .read(canvasProvider.notifier)
+        .loadElements(newPage?.visibleElements ?? const []);
+  }
+
+  /// Invert colors of all elements on the canvas (single undoable action).
   void _invertColors(WidgetRef ref) {
     final canvasState = ref.read(canvasProvider);
     final elements = canvasState.elements;
@@ -222,8 +246,11 @@ class BottomToolbar extends ConsumerWidget {
       return el;
     }).toList();
 
-    ref.read(canvasProvider.notifier).loadElements(invertedElements);
-    ref.read(lectureProvider.notifier).updateCurrentPageElements(invertedElements);
+    // Undoable: keeps undo/redo history and repaints the canvas.
+    ref.read(canvasProvider.notifier).replaceElements(invertedElements);
+    ref
+        .read(lectureProvider.notifier)
+        .updateCurrentPageElements(ref.read(canvasProvider).elements);
   }
 
   Color _invertColor(Color color) {
@@ -237,12 +264,14 @@ class BottomToolbar extends ConsumerWidget {
 
   /// Screen capture - exports the current canvas as an image.
   void _screenCapture(BuildContext context, WidgetRef ref) {
+    final l10n =
+        AppLocalizations.of(ref.read(settingsProvider).language.code);
     Future.microtask(() async {
       final lecture = ref.read(lectureProvider).lecture;
       if (lecture == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No canvas to capture.')),
+            SnackBar(content: Text(l10n.get('no_canvas_to_capture'))),
           );
         }
         return;
@@ -258,7 +287,11 @@ class BottomToolbar extends ConsumerWidget {
       );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success ? 'Screen captured.' : 'Capture cancelled.')),
+          SnackBar(
+            content: Text(success
+                ? l10n.get('screen_captured')
+                : l10n.get('capture_cancelled')),
+          ),
         );
       }
     });

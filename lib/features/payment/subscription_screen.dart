@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Subscription plan selection and management screen.
 class SubscriptionScreen extends ConsumerWidget {
@@ -15,10 +17,12 @@ class SubscriptionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subState = ref.watch(subscriptionProvider);
     final authState = ref.watch(authProvider);
+    final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(settings.language.code);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription Plans'),
+        title: Text(l10n.get('subscription_plans')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/dashboard'),
@@ -29,16 +33,16 @@ class SubscriptionScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Header
-            const Text(
-              'Choose Your Plan',
-              style: TextStyle(
+            Text(
+              l10n.get('choose_your_plan'),
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: AppDimensions.spacingMD),
             Text(
-              'Unlock the full potential of ICanNote',
+              l10n.get('unlock_full_potential'),
               style: TextStyle(
                 fontSize: AppDimensions.fontSizeLG,
                 color: Colors.grey.shade600,
@@ -68,7 +72,7 @@ class SubscriptionScreen extends ConsumerWidget {
                         color: AppColors.secondary, size: 20),
                     const SizedBox(width: AppDimensions.spacingMD),
                     Text(
-                      'Current plan: ${subState.currentPlan.name.toUpperCase()}',
+                      '${l10n.get('current_plan_prefix')} ${subState.currentPlan.name.toUpperCase()}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.secondary,
@@ -98,6 +102,7 @@ class SubscriptionScreen extends ConsumerWidget {
                         plan: SubscriptionPlan.free,
                         currentPlan: subState.currentPlan,
                         isAuthenticated: authState.isAuthenticated,
+                        l10n: l10n,
                       ),
                     ),
                     SizedBox(
@@ -106,6 +111,7 @@ class SubscriptionScreen extends ConsumerWidget {
                         plan: SubscriptionPlan.pro,
                         currentPlan: subState.currentPlan,
                         isAuthenticated: authState.isAuthenticated,
+                        l10n: l10n,
                         isPopular: true,
                       ),
                     ),
@@ -115,6 +121,7 @@ class SubscriptionScreen extends ConsumerWidget {
                         plan: SubscriptionPlan.enterprise,
                         currentPlan: subState.currentPlan,
                         isAuthenticated: authState.isAuthenticated,
+                        l10n: l10n,
                       ),
                     ),
                   ],
@@ -128,7 +135,7 @@ class SubscriptionScreen extends ConsumerWidget {
             if (subState.isActive) ...[
               const Divider(),
               const SizedBox(height: AppDimensions.spacingXL),
-              _SubscriptionManagement(subState: subState),
+              _SubscriptionManagement(subState: subState, l10n: l10n),
             ],
 
             // Loading overlay
@@ -158,12 +165,14 @@ class _PlanCard extends ConsumerWidget {
   final SubscriptionPlan plan;
   final SubscriptionPlan currentPlan;
   final bool isAuthenticated;
+  final AppLocalizations l10n;
   final bool isPopular;
 
   const _PlanCard({
     required this.plan,
     required this.currentPlan,
     required this.isAuthenticated,
+    required this.l10n,
     this.isPopular = false,
   });
 
@@ -205,10 +214,10 @@ class _PlanCard extends ConsumerWidget {
                   topRight: Radius.circular(AppDimensions.borderRadiusMD - 1),
                 ),
               ),
-              child: const Text(
-                'MOST POPULAR',
+              child: Text(
+                l10n.get('most_popular'),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: AppDimensions.fontSizeSM,
@@ -248,7 +257,7 @@ class _PlanCard extends ConsumerWidget {
                         padding:
                             const EdgeInsets.only(bottom: 4, left: 4),
                         child: Text(
-                          '/month',
+                          l10n.get('per_month'),
                           style: TextStyle(
                             fontSize: AppDimensions.fontSizeMD,
                             color: Colors.grey.shade600,
@@ -275,39 +284,39 @@ class _PlanCard extends ConsumerWidget {
                 // Features
                 _FeatureItem(
                   text: limits.isUnlimitedLectures
-                      ? 'Unlimited lectures'
-                      : '${limits.maxLectures} lectures',
+                      ? l10n.get('unlimited_lectures')
+                      : '${limits.maxLectures} ${l10n.get('lectures_count_suffix')}',
                   included: true,
                 ),
                 _FeatureItem(
                   text: limits.isUnlimitedPages
-                      ? 'Unlimited pages'
-                      : '${limits.maxPagesPerLecture} pages/lecture',
+                      ? l10n.get('unlimited_pages')
+                      : '${limits.maxPagesPerLecture} ${l10n.get('pages_per_lecture_suffix')}',
                   included: true,
                 ),
                 _FeatureItem(
                   text: limits.isUnlimitedCollaborators
-                      ? 'Unlimited collaborators'
+                      ? l10n.get('unlimited_collaborators')
                       : limits.maxCollaborators > 0
-                          ? 'Up to ${limits.maxCollaborators} collaborators'
-                          : 'No collaboration',
+                          ? '${l10n.get('up_to_collaborators_prefix')} ${limits.maxCollaborators} ${l10n.get('up_to_collaborators_suffix')}'
+                          : l10n.get('no_collaboration'),
                   included: limits.maxCollaborators != 0,
                 ),
                 _FeatureItem(
-                  text: '${limits.storageDisplay} storage',
+                  text: '${limits.storageDisplay} ${l10n.get('storage_suffix')}',
                   included: true,
                 ),
                 _FeatureItem(
-                  text: 'File import (PDF, PPT, HWP)',
+                  text: l10n.get('file_import_feature'),
                   included: limits.canImportFiles,
                 ),
                 _FeatureItem(
-                  text: 'Lecture recording',
+                  text: l10n.get('lecture_recording'),
                   included: limits.canRecord,
                 ),
                 if (plan == SubscriptionPlan.enterprise)
-                  const _FeatureItem(
-                    text: 'Priority support',
+                  _FeatureItem(
+                    text: l10n.get('priority_support'),
                     included: true,
                   ),
 
@@ -330,10 +339,10 @@ class _PlanCard extends ConsumerWidget {
                     ),
                     child: Text(
                       isCurrentPlan
-                          ? 'Current Plan'
+                          ? l10n.get('current_plan')
                           : plan == SubscriptionPlan.free
-                              ? 'Get Started'
-                              : 'Subscribe',
+                              ? l10n.get('get_started')
+                              : l10n.get('subscribe'),
                     ),
                   ),
                 ),
@@ -356,22 +365,19 @@ class _PlanCard extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Downgrade to Free?'),
-          content: const Text(
-            'You will lose access to premium features. '
-            'Your subscription will remain active until the end of the current billing period.',
-          ),
+          title: Text(l10n.get('downgrade_to_free_question')),
+          content: Text(l10n.get('downgrade_to_free_content')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(l10n.get('cancel')),
             ),
             ElevatedButton(
               onPressed: () {
                 ref.read(subscriptionProvider.notifier).cancelSubscription();
                 Navigator.pop(ctx);
               },
-              child: const Text('Downgrade'),
+              child: Text(l10n.get('downgrade')),
             ),
           ],
         ),
@@ -385,18 +391,18 @@ class _PlanCard extends ConsumerWidget {
   String _planName(SubscriptionPlan plan) {
     switch (plan) {
       case SubscriptionPlan.free:
-        return 'Free';
+        return l10n.get('plan_free');
       case SubscriptionPlan.pro:
-        return 'Pro';
+        return l10n.get('plan_pro');
       case SubscriptionPlan.enterprise:
-        return 'Enterprise';
+        return l10n.get('plan_enterprise');
     }
   }
 
   String _planPrice(SubscriptionPlan plan) {
     switch (plan) {
       case SubscriptionPlan.free:
-        return 'Free';
+        return l10n.get('free');
       case SubscriptionPlan.pro:
         return '₩9,900';
       case SubscriptionPlan.enterprise:
@@ -407,11 +413,11 @@ class _PlanCard extends ConsumerWidget {
   String _planDescription(SubscriptionPlan plan) {
     switch (plan) {
       case SubscriptionPlan.free:
-        return 'Perfect for getting started';
+        return l10n.get('plan_free_desc');
       case SubscriptionPlan.pro:
-        return 'For instructors and teams';
+        return l10n.get('plan_pro_desc');
       case SubscriptionPlan.enterprise:
-        return 'For organizations and schools';
+        return l10n.get('plan_enterprise_desc');
     }
   }
 }
@@ -453,8 +459,9 @@ class _FeatureItem extends StatelessWidget {
 
 class _SubscriptionManagement extends ConsumerWidget {
   final SubscriptionState subState;
+  final AppLocalizations l10n;
 
-  const _SubscriptionManagement({required this.subState});
+  const _SubscriptionManagement({required this.subState, required this.l10n});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -463,24 +470,24 @@ class _SubscriptionManagement extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Subscription Details',
-          style: TextStyle(
+        Text(
+          l10n.get('subscription_details'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: AppDimensions.spacingXL),
-        _InfoRow('Plan', sub.plan.name.toUpperCase()),
-        _InfoRow('Status', sub.status.toJson()),
+        _InfoRow(l10n.get('plan'), sub.plan.name.toUpperCase()),
+        _InfoRow(l10n.get('status'), sub.status.toJson()),
         if (sub.currentPeriodEnd != null)
           _InfoRow(
-            'Next billing date',
+            l10n.get('next_billing_date'),
             '${sub.currentPeriodEnd!.year}-${sub.currentPeriodEnd!.month.toString().padLeft(2, '0')}-${sub.currentPeriodEnd!.day.toString().padLeft(2, '0')}',
           ),
         if (sub.cancelledAt != null)
           _InfoRow(
-            'Cancelled on',
+            l10n.get('cancelled_on'),
             '${sub.cancelledAt!.year}-${sub.cancelledAt!.month.toString().padLeft(2, '0')}-${sub.cancelledAt!.day.toString().padLeft(2, '0')}',
           ),
         const SizedBox(height: AppDimensions.spacingXL),
@@ -490,15 +497,12 @@ class _SubscriptionManagement extends ConsumerWidget {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('Cancel Subscription?'),
-                  content: const Text(
-                    'Your subscription will remain active until the end '
-                    'of the current billing period.',
-                  ),
+                  title: Text(l10n.get('cancel_subscription_question')),
+                  content: Text(l10n.get('cancel_subscription_content')),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Keep'),
+                      child: Text(l10n.get('keep')),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -510,13 +514,13 @@ class _SubscriptionManagement extends ConsumerWidget {
                             .cancelSubscription();
                         Navigator.pop(ctx);
                       },
-                      child: const Text('Cancel Subscription'),
+                      child: Text(l10n.get('cancel_subscription')),
                     ),
                   ],
                 ),
               );
             },
-            child: const Text('Cancel Subscription'),
+            child: Text(l10n.get('cancel_subscription')),
           ),
       ],
     );
