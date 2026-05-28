@@ -467,19 +467,20 @@ class TopMenuBar extends ConsumerWidget {
                     '- 도형, 선, 곡선\n'
                     '- 텍스트 주석\n'
                     '- 퀴즈용 스티커 커버\n'
-                    '- 실시간 협업\n'
-                    '- 녹화 및 재생\n'
                     '- PDF/이미지 내보내기\n'
-                    '- 다중 페이지 강의'
+                    '- 다중 페이지 강의\n'
+                    '- 비밀번호로 보호된 .icn 파일\n'
+                    '\n다음 업데이트 예정: 로그인, 실시간 협업, 클라우드 동기화, 녹화/재생'
                   : 'Features:\n'
                     '- Free drawing with pen, highlighter\n'
                     '- Shapes, lines, curves\n'
                     '- Text annotations\n'
                     '- Sticker covers for quizzes\n'
-                    '- Real-time collaboration\n'
-                    '- Recording & playback\n'
                     '- PDF/Image export\n'
-                    '- Multi-page lectures',
+                    '- Multi-page lectures\n'
+                    '- Password-protected .icn files\n'
+                    '\nComing soon: sign-in, real-time collaboration, '
+                    'cloud sync, recording & playback',
                 style: const TextStyle(fontSize: 13),
               ),
             ],
