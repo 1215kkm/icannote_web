@@ -196,10 +196,17 @@ class AppLocalizations {
     'sound_video': 'Sound/Video',
     'settings': 'Settings',
     'help': 'Help',
-    'login': 'Login',
+    'login': 'Sign in (soon)',
     'sign_out': 'Sign Out',
     'dashboard': 'Dashboard',
-    'collaborate': 'Collaborate',
+    'collaborate': 'Collaborate (soon)',
+    'cloud_login_v2_msg':
+        'Sign-in is coming in a future update. The local whiteboard works fully offline.',
+    'cloud_collab_v2_msg':
+        'Real-time collaboration is coming in a future update. You can keep working locally.',
+    'demo_mode_banner': 'DEMO MODE — no real payment is processed',
+    'demo_mode_hint':
+        'Press the button below to simulate a successful subscription locally.',
     'new_lecture': 'New Lecture',
     'open_lecture_file': 'Open Lecture File',
     'add_textbook': 'Add Textbook File',
@@ -523,10 +530,17 @@ class AppLocalizations {
     'sound_video': '소리/동영상',
     'settings': '설정',
     'help': '도움말',
-    'login': '로그인',
+    'login': '로그인 (준비 중)',
     'sign_out': '로그아웃',
     'dashboard': '대시보드',
-    'collaborate': '협업',
+    'collaborate': '협업 (준비 중)',
+    'cloud_login_v2_msg':
+        '로그인 기능은 다음 업데이트에서 제공됩니다. 로컬 화이트보드는 인터넷 없이 모두 동작합니다.',
+    'cloud_collab_v2_msg':
+        '실시간 협업은 다음 업데이트에서 제공됩니다. 로컬 작업은 계속 가능합니다.',
+    'demo_mode_banner': '데모 모드 — 실제 결제는 이루어지지 않습니다',
+    'demo_mode_hint':
+        '아래 버튼을 누르면 로컬에서만 구독을 활성화합니다 (테스트용).',
     'new_lecture': '새 강의',
     'open_lecture_file': '강의 파일 열기',
     'add_textbook': '교재 파일 추가',

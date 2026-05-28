@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import '../models/lecture.dart';
+import 'io/file_io_web.dart'
+    if (dart.library.io) 'io/file_io_native.dart' as platform_io;
 
 /// Lightweight, dependency-free password protection for .icn files.
 ///
@@ -265,80 +267,22 @@ class FileService {
     return const JsonEncoder.withIndent('  ').convert(json);
   }
 
-  /// Read file on native platforms using dart:io conditionally.
+  /// Read file on native platforms via the conditional-import bridge.
+  /// Returns null on web (or if the file is missing).
   Future<String?> _readFileNative(String path) async {
+    if (kIsWeb) return null;
     try {
-      // Dynamic import workaround for web compatibility
-      if (kIsWeb) return null;
-      // Use compute to avoid blocking UI
-      return await compute(_readFileIsolate, path);
+      return await platform_io.readFileAsString(path);
     } catch (e) {
       debugPrint('Error reading file: $e');
       return null;
     }
   }
 
-  /// Write file on native platforms.
+  /// Write file on native platforms via the conditional-import bridge.
+  /// No-op on web (the saveFile dialog handled the actual download).
   Future<void> _writeFileNative(String path, String content) async {
     if (kIsWeb) return;
-    await compute(_writeFileIsolate, _WriteFileArgs(path, content));
+    await platform_io.writeFileAsString(path, content);
   }
-
-  static String _readFileIsolate(String path) {
-    // This runs in an isolate, so we can use dart:io safely
-    // ignore: avoid_dynamic_calls
-    return _ioReadFileSync(path);
-  }
-
-  static void _writeFileIsolate(_WriteFileArgs args) {
-    _ioWriteFileSync(args.path, args.content);
-  }
-
-  // These will fail on web at compile time if called, but they're guarded by kIsWeb
-  static String _ioReadFileSync(String path) {
-    // Use conditional import pattern
-    // For now, use a simpler approach with try-catch
-    try {
-      final file = _IoFile(path);
-      return file.readAsStringSync();
-    } catch (e) {
-      throw Exception('Cannot read file on this platform: $e');
-    }
-  }
-
-  static void _ioWriteFileSync(String path, String content) {
-    try {
-      final file = _IoFile(path);
-      file.writeAsStringSync(content);
-    } catch (e) {
-      throw Exception('Cannot write file on this platform: $e');
-    }
-  }
-}
-
-/// Wrapper for dart:io File to avoid direct import issues on web.
-/// On web builds, file_picker handles everything via bytes.
-class _IoFile {
-  final String path;
-  _IoFile(this.path);
-
-  String readAsStringSync() {
-    // file_picker with withData:true gives us bytes on all platforms
-    // This is a fallback for native-only path-based access
-    throw UnimplementedError(
-      'Direct file I/O not available. Use file_picker bytes instead.',
-    );
-  }
-
-  void writeAsStringSync(String content) {
-    throw UnimplementedError(
-      'Direct file I/O not available. Use file_picker saveFile instead.',
-    );
-  }
-}
-
-class _WriteFileArgs {
-  final String path;
-  final String content;
-  const _WriteFileArgs(this.path, this.content);
 }

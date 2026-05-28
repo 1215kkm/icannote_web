@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -16,7 +15,6 @@ class SubscriptionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subState = ref.watch(subscriptionProvider);
-    final authState = ref.watch(authProvider);
     final settings = ref.watch(settingsProvider);
     final l10n = AppLocalizations.of(settings.language.code);
 
@@ -101,7 +99,6 @@ class SubscriptionScreen extends ConsumerWidget {
                       child: _PlanCard(
                         plan: SubscriptionPlan.free,
                         currentPlan: subState.currentPlan,
-                        isAuthenticated: authState.isAuthenticated,
                         l10n: l10n,
                       ),
                     ),
@@ -110,7 +107,6 @@ class SubscriptionScreen extends ConsumerWidget {
                       child: _PlanCard(
                         plan: SubscriptionPlan.pro,
                         currentPlan: subState.currentPlan,
-                        isAuthenticated: authState.isAuthenticated,
                         l10n: l10n,
                         isPopular: true,
                       ),
@@ -120,7 +116,6 @@ class SubscriptionScreen extends ConsumerWidget {
                       child: _PlanCard(
                         plan: SubscriptionPlan.enterprise,
                         currentPlan: subState.currentPlan,
-                        isAuthenticated: authState.isAuthenticated,
                         l10n: l10n,
                       ),
                     ),
@@ -164,14 +159,12 @@ class SubscriptionScreen extends ConsumerWidget {
 class _PlanCard extends ConsumerWidget {
   final SubscriptionPlan plan;
   final SubscriptionPlan currentPlan;
-  final bool isAuthenticated;
   final AppLocalizations l10n;
   final bool isPopular;
 
   const _PlanCard({
     required this.plan,
     required this.currentPlan,
-    required this.isAuthenticated,
     required this.l10n,
     this.isPopular = false,
   });
@@ -355,11 +348,6 @@ class _PlanCard extends ConsumerWidget {
   }
 
   void _handleSelect(BuildContext context, WidgetRef ref) {
-    if (!isAuthenticated) {
-      context.go('/login');
-      return;
-    }
-
     if (plan == SubscriptionPlan.free) {
       // Downgrade to free
       showDialog(

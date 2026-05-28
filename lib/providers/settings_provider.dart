@@ -126,7 +126,7 @@ class SettingsState {
   final String cursorStyle; // 'default', 'crosshair', 'dot'
 
   const SettingsState({
-    this.themeMode = AppThemeMode.dark,
+    this.themeMode = AppThemeMode.light,
     this.language = AppLanguage.english,
     this.shortcuts = const [],
     this.showToolbarLabels = false,
@@ -156,8 +156,7 @@ class SettingsState {
     );
   }
 
-  bool get isDarkMode =>
-      themeMode == AppThemeMode.dark || themeMode == AppThemeMode.system;
+  bool get isDarkMode => themeMode == AppThemeMode.dark;
 
   /// Build the shortcut bindings map for CallbackShortcuts.
   Map<SingleActivator, VoidCallback> buildShortcutMap(

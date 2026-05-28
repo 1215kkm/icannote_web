@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/l10n/app_localizations.dart';
+import '../../features/canvas/canvas_painter.dart';
+import '../../models/page_data.dart';
 
 class LectureCard extends StatelessWidget {
   final String title;
@@ -9,6 +11,9 @@ class LectureCard extends StatelessWidget {
   final DateTime lastModified;
   final VoidCallback onTap;
   final AppLocalizations l10n;
+  final PageData? firstPage;
+  final double pageWidth;
+  final double pageHeight;
 
   const LectureCard({
     super.key,
@@ -17,6 +22,9 @@ class LectureCard extends StatelessWidget {
     required this.lastModified,
     required this.onTap,
     required this.l10n,
+    this.firstPage,
+    required this.pageWidth,
+    required this.pageHeight,
   });
 
   @override
@@ -44,26 +52,38 @@ class LectureCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail placeholder
             Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.canvasBackground,
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadiusSM),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.description_outlined,
-                    size: 40,
-                    color: Colors.grey.shade400,
-                  ),
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.borderRadiusSM),
+                child: Container(
+                  width: double.infinity,
+                  color: firstPage?.backgroundColor ?? AppColors.canvasBackground,
+                  child: firstPage == null
+                      ? Center(
+                          child: Icon(
+                            Icons.description_outlined,
+                            size: 40,
+                            color: Colors.grey.shade400,
+                          ),
+                        )
+                      : FittedBox(
+                          fit: BoxFit.contain,
+                          alignment: Alignment.topLeft,
+                          child: SizedBox(
+                            width: pageWidth,
+                            height: pageHeight,
+                            child: CustomPaint(
+                              painter: CanvasPainter(
+                                elements: firstPage!.visibleElements,
+                              ),
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ),
             const SizedBox(height: AppDimensions.spacingMD),
-            // Title
             Text(
               title,
               maxLines: 1,
@@ -74,7 +94,6 @@ class LectureCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppDimensions.spacingSM),
-            // Info
             Text(
               '$pageCount ${l10n.get('pages_suffix')}',
               style: TextStyle(

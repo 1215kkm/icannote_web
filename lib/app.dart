@@ -22,7 +22,11 @@ class ICanNoteApp extends ConsumerWidget {
         theme = AppTheme.darkTheme;
         break;
       case AppThemeMode.system:
-        theme = AppTheme.darkTheme; // Default to dark
+        // The screens (home cards, dashboard, subscription) are designed
+        // around white card surfaces with dark text — default to light so
+        // text inside cards stays legible. Users can still switch to dark
+        // in Settings.
+        theme = AppTheme.lightTheme;
         break;
     }
 

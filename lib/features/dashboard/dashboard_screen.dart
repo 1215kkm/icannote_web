@@ -30,10 +30,9 @@ class DashboardScreen extends ConsumerWidget {
         backgroundColor: AppColors.menuBarBackground,
         foregroundColor: Colors.white,
         actions: [
+          _SubscriptionBadge(),
+          const SizedBox(width: AppDimensions.spacingMD),
           if (authState.isAuthenticated) ...[
-            // Subscription badge
-            _SubscriptionBadge(),
-            const SizedBox(width: AppDimensions.spacingMD),
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.spacingMD),
@@ -50,7 +49,7 @@ class DashboardScreen extends ConsumerWidget {
               tooltip: l10n.get('sign_out'),
               onPressed: () {
                 ref.read(authProvider.notifier).signOut();
-                context.go('/login');
+                context.go('/');
               },
             ),
           ],
@@ -110,6 +109,11 @@ class DashboardScreen extends ConsumerWidget {
                           lastModified: lectureState.lecture!.updatedAt,
                           onTap: () => context.go('/editor'),
                           l10n: l10n,
+                          firstPage: lectureState.lecture!.pages.isNotEmpty
+                              ? lectureState.lecture!.pages.first
+                              : null,
+                          pageWidth: lectureState.lecture!.pageWidth,
+                          pageHeight: lectureState.lecture!.pageHeight,
                         ),
                       ],
                     ),

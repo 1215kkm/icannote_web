@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -11,8 +10,9 @@ import '../../core/l10n/app_localizations.dart';
 
 /// Payment screen for completing a subscription purchase.
 ///
-/// On web, TossPayments is loaded via JavaScript SDK (iframe).
-/// This screen handles the payment flow UI and result callback.
+/// v1 ships in DEMO MODE — pressing the pay button activates the plan
+/// locally so users can exercise the subscription UX. No network call to
+/// TossPayments or the Go backend. Real billing arrives with v2.
 class PaymentScreen extends ConsumerStatefulWidget {
   final String planName;
 
@@ -36,28 +36,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
     final settings = ref.watch(settingsProvider);
     final l10n = AppLocalizations.of(settings.language.code);
-
-    if (!authState.isAuthenticated) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.get('payment'))),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l10n.get('please_log_in_to_subscribe')),
-              const SizedBox(height: AppDimensions.spacingXL),
-              ElevatedButton(
-                onPressed: () => context.go('/login'),
-                child: Text(l10n.get('log_in')),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     if (_paymentComplete) {
       return _PaymentSuccess(
@@ -108,56 +88,51 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     ),
                     const SizedBox(height: AppDimensions.spacingXL),
 
-                    // TossPayments widget placeholder
+                    // DEMO MODE banner — v1 ships without a real
+                    // TossPayments integration; pressing pay simulates
+                    // a successful subscription locally.
                     Container(
-                      height: 200,
+                      padding: const EdgeInsets.all(AppDimensions.spacingXL),
                       decoration: BoxDecoration(
-                        color: AppColors.canvasBackground,
+                        color: AppColors.secondary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(
                             AppDimensions.borderRadiusSM),
-                        border: Border.all(color: AppColors.panelBorder),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.credit_card,
-                              size: 48,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: AppDimensions.spacingXL),
-                            Text(
-                              l10n.get('tosspayments_widget'),
-                              style: TextStyle(
-                                fontSize: AppDimensions.fontSizeLG,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: AppDimensions.spacingMD),
-                            Text(
-                              l10n.get('tosspayments_widget_hint'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: AppDimensions.fontSizeSM,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                          ],
+                        border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.5),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: AppDimensions.spacingXL),
-
-                    // For demo: direct activate button
-                    Text(
-                      l10n.get('payment_test_hint'),
-                      style: TextStyle(
-                        fontSize: AppDimensions.fontSizeSM,
-                        color: Colors.grey.shade500,
-                        fontStyle: FontStyle.italic,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.science_outlined,
+                                size: 20,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: AppDimensions.spacingMD),
+                              Expanded(
+                                child: Text(
+                                  l10n.get('demo_mode_banner'),
+                                  style: const TextStyle(
+                                    fontSize: AppDimensions.fontSizeMD,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppDimensions.spacingMD),
+                          Text(
+                            l10n.get('demo_mode_hint'),
+                            style: TextStyle(
+                              fontSize: AppDimensions.fontSizeSM,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

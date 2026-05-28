@@ -1019,7 +1019,7 @@ class _LoginMenuBarItem extends ConsumerWidget {
     return _MenuBarItem(
       label: l10n.login,
       isHighlighted: true,
-      onTapWithContext: (_) => context.go('/login'),
+      onTapWithContext: (ctx) => _showV2Notice(ctx, l10n.get('cloud_login_v2_msg')),
     );
   }
 
@@ -1063,7 +1063,13 @@ class _CollaborateMenuBarItem extends ConsumerWidget {
     return _MenuBarItem(
       label: syncState.isConnected ? '${l10n.collaborate} (Live)' : l10n.collaborate,
       isHighlighted: syncState.isConnected,
-      onTapWithContext: (ctx) => _showCollaborateMenu(ctx, ref, syncState, l10n),
+      onTapWithContext: (ctx) {
+        if (syncState.isConnected) {
+          _showCollaborateMenu(ctx, ref, syncState, l10n);
+        } else {
+          _showV2Notice(ctx, l10n.get('cloud_collab_v2_msg'));
+        }
+      },
     );
   }
 
@@ -1275,4 +1281,14 @@ class _NewLectureDialogState extends State<_NewLectureDialog> {
       ],
     );
   }
+}
+
+void _showV2Notice(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 4),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
 }
