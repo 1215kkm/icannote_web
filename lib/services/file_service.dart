@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../models/lecture.dart';
 import 'io/file_io_web.dart'
     if (dart.library.io) 'io/file_io_native.dart' as platform_io;
+import 'io/file_download.dart';
 
 /// Lightweight, dependency-free password protection for .icn files.
 ///
@@ -169,13 +170,13 @@ class FileService {
       }
 
       if (kIsWeb) {
-        // Web: trigger download via file_picker
-        await FilePicker.platform.saveFile(
-          dialogTitle: 'Save Lecture',
+        // Web: file_picker.saveFile is not implemented on web, so we use
+        // the platform download helper (anchor + Blob).
+        return await downloadBytes(
           fileName: '${lecture.title}.icn',
           bytes: utf8.encode(jsonString),
+          mimeType: 'application/json',
         );
-        return true;
       }
 
       // Native: save to path
@@ -206,12 +207,11 @@ class FileService {
       final fileName = suggestedName ?? '${lecture.title}.icn';
 
       if (kIsWeb) {
-        await FilePicker.platform.saveFile(
-          dialogTitle: 'Save Lecture As',
+        return await downloadBytes(
           fileName: fileName,
           bytes: utf8.encode(jsonString),
+          mimeType: 'application/json',
         );
-        return true;
       }
 
       // Native: use save dialog

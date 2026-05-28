@@ -5,9 +5,9 @@ import 'package:flutter/rendering.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:file_picker/file_picker.dart';
 import '../models/canvas_element.dart';
 import '../models/lecture.dart';
+import 'io/file_download.dart';
 
 /// Service for exporting canvas content as PDF, Image, and printing.
 class CanvasExportService {
@@ -63,12 +63,11 @@ class CanvasExportService {
       final bytes = await imageToBytes(image);
       if (bytes == null) return false;
 
-      await FilePicker.platform.saveFile(
-        dialogTitle: 'Save as Image',
+      return await downloadBytes(
         fileName: fileName,
         bytes: bytes,
+        mimeType: 'image/png',
       );
-      return true;
     } catch (e) {
       debugPrint('Error exporting image: $e');
       return false;
@@ -89,12 +88,11 @@ class CanvasExportService {
         currentPageIndex: currentPageIndex,
       );
 
-      await FilePicker.platform.saveFile(
-        dialogTitle: 'Save as PDF',
+      return await downloadBytes(
         fileName: fileName ?? '${lecture.title}.pdf',
         bytes: pdfBytes,
+        mimeType: 'application/pdf',
       );
-      return true;
     } catch (e) {
       debugPrint('Error exporting PDF: $e');
       return false;
